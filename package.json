@@ -24,12 +24,6 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "os": [
-    "win32"
-  ],
-  "cpu": [
-    "x64"
-  ],
   "extensionKind": [
     "ui"
   ],

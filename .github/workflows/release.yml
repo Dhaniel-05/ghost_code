@@ -69,7 +69,8 @@ jobs:
           NOMBRE=$(basename "$FILE")
 
           # Notas: la sección de esta versión en CHANGELOG.md
-          awk -v v="## $VERSION" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md > notas.md
+          # (en el runner de Windows el archivo trae \r\n: se quitan los \r para que la comparación exacta funcione)
+          tr -d '\r' < CHANGELOG.md | awk -v v="## $VERSION" '$0==v{f=1;next} /^## /{f=0} f' > notas.md
           [ -s notas.md ] || echo "Versión $VERSION" > notas.md
           {
             echo

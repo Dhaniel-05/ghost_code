@@ -170,8 +170,10 @@ const item = (nodo) => proveedor().getTreeItem(nodo);
     assert.ok(m.contributes.viewsWelcome.some((v) => v.view === 'ghostCode.guias' && v.contents.includes('command:ghostCode.loadGuide')));
   });
   caso('solo Windows x64 y en el lado local (UI); entrada y versiones correctas', () => {
-    assert.deepStrictEqual(m.os, ['win32']);
-    assert.deepStrictEqual(m.cpu, ['x64']);
+    // Sin «os»/«cpu»: npm los exige también al proyecto raíz y rompía «npm ci» en Linux (el CI). VS Code no los lee;
+    // la restricción a Windows x64 va en el paquete (vsce --target win32-x64, comprobado más abajo).
+    assert.ok(!('os' in m) && !('cpu' in m), 'os/cpu en package.json rompen npm ci en Linux');
+    assert.ok(/--target win32-x64/.test(m.scripts.package));
     assert.deepStrictEqual(m.extensionKind, ['ui']);
     assert.strictEqual(m.main, './out/extension.js');
     assert.strictEqual(m.name, 'ghost-code');
@@ -194,7 +196,8 @@ const item = (nodo) => proveedor().getTreeItem(nodo);
     const licencia = fs.readFileSync(path.join(raiz, 'LICENSE'), 'utf8');
     assert.ok(licencia.startsWith('MIT License') && /Copyright \(c\) 2026 Daniel Alfonso Martínez Payán/.test(licencia));
     const cambios = fs.readFileSync(path.join(raiz, 'CHANGELOG.md'), 'utf8');
-    assert.ok(cambios.includes(`## ${m.version}\n`), 'CHANGELOG.md necesita una sección con la versión actual (el Release la usa como notas)');
+    // (en Windows, Git deja los archivos con \r\n: por eso se compara por líneas y no con «\n» exacto)
+    assert.ok(cambios.split(/\r?\n/).includes(`## ${m.version}`), 'CHANGELOG.md necesita una sección con la versión actual (el Release la usa como notas)');
     assert.ok(fs.existsSync(path.join(raiz, 'README.md')));
   });
   caso('empaquetado: .vsix para win32-x64, revisión previa del visor y compilación antes de empaquetar', () => {
@@ -214,6 +217,8 @@ const item = (nodo) => proveedor().getTreeItem(nodo);
     assert.ok(/contents:\s*write/.test(rel), 'release.yml necesita permiso para crear el Release');
     assert.ok(/github\.ref_name/.test(rel) && /package\.json/.test(rel), 'debe comprobar que la etiqueta coincide con la versión');
     assert.ok(/gh release (create|upload)/.test(rel));
+    // en el runner de Windows el CHANGELOG llega con \r\n: sin quitarlos, awk no encuentra la sección y las notas salen vacías
+    assert.ok(/tr -d '\\r' < CHANGELOG\.md \| awk/.test(rel), 'release.yml debe quitar los \\r antes de buscar la sección del CHANGELOG');
   });
   caso('publish-marketplace.yml: a mano, sin tokens (OIDC), solo desde la etiqueta de la versión y con el .vsix win32-x64', () => {
     const mk = fs.readFileSync(path.join(raiz, '.github', 'workflows', 'publish-marketplace.yml'), 'utf8');
