@@ -215,6 +215,16 @@ const item = (nodo) => proveedor().getTreeItem(nodo);
     assert.ok(/github\.ref_name/.test(rel) && /package\.json/.test(rel), 'debe comprobar que la etiqueta coincide con la versión');
     assert.ok(/gh release (create|upload)/.test(rel));
   });
+  caso('publish-marketplace.yml: a mano, sin tokens (OIDC), solo desde la etiqueta de la versión y con el .vsix win32-x64', () => {
+    const mk = fs.readFileSync(path.join(raiz, '.github', 'workflows', 'publish-marketplace.yml'), 'utf8');
+    assert.ok(/on:\s*\n\s*workflow_dispatch:/.test(mk), 'debe ejecutarse solo a mano');
+    assert.ok(!/\n\s*(push|pull_request|schedule):/.test(mk), 'no debe activarse solo');
+    assert.ok(/id-token:\s*write/.test(mk) && /contents:\s*read/.test(mk));
+    assert.ok(/vsce(@latest)? publish .*--packagePath .*ghost-code-win32-x64-.*\.vsix.* --oidc/.test(mk), 'publica con --oidc');
+    assert.ok(!/secrets\.|VSCE_PAT|\bpat\b/i.test(mk.replace(/#.*$/gm, '')), 'no debe usar tokens ni secretos');
+    assert.ok(/github\.ref_type/.test(mk) && /compilar:visor/.test(mk) && /windows-latest/.test(mk));
+    assert.ok(/name: Publicar en el Marketplace/.test(mk));
+  });
   caso('todo comando usado en atajos, menús y bienvenida está declarado', () => {
     const usados = new Set();
     (m.contributes.keybindings ?? []).forEach((k) => usados.add(k.command));

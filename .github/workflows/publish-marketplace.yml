@@ -1,0 +1,69 @@
+# Publica Ghost Code en el Visual Studio Marketplace.
+# Se ejecuta A MANO: GitHub → Actions → "Publicar en el Marketplace" → Run workflow
+# (elige la etiqueta de la versión, por ejemplo v0.1.0, en "Use workflow from").
+#
+# Usa "Trusted Publishing" (OIDC): no hace falta guardar ningún token en GitHub.
+# Antes hay que publicar la primera versión a mano y crear la política de publicación de confianza en el Marketplace
+# (propietario Dhaniel-05, repositorio ghost_code, archivo publish-marketplace.yml).
+# IMPORTANTE: el nombre de este archivo (publish-marketplace.yml) debe coincidir con el que escribas en esa política.
+#
+# A diferencia de Ramcrack Request, aquí se compila también el visor (ghost-viewer.exe, C# autocontenido), por eso corre en Windows.
+name: Publicar en el Marketplace
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # necesario para Trusted Publishing (OIDC)
+
+jobs:
+  marketplace:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v5
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Preparar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Comprobar que se ejecuta desde una etiqueta de versión
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "${{ github.ref_type }}" != "tag" ] || [ "${{ github.ref_name }}" != "v$VERSION" ]; then
+            echo "::error::Ejecuta este flujo desde la etiqueta v$VERSION (ahora: ${{ github.ref_type }} ${{ github.ref_name }})."
+            exit 1
+          fi
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar y probar
+        run: npm test
+
+      - name: Compilar el visor (autocontenido, win-x64)
+        run: npm run compilar:visor
+
+      # «npm run package» compila de nuevo, revisa bin/ y crea release/ghost-code-win32-x64-<versión>.vsix
+      - name: Crear el instalador (.vsix)
+        run: npm run package
+
+      - name: Comprobar el contenido del .vsix
+        run: npm run verificar:vsix
+
+      # Se usa la última versión de vsce porque --oidc es reciente
+      - name: Publicar en el Marketplace
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          npx --yes @vscode/vsce@latest publish --packagePath "release/ghost-code-win32-x64-$VERSION.vsix" --oidc
