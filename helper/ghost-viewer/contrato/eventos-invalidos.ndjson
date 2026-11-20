@@ -1,0 +1,16 @@
+no es JSON	{"tipo":"listo"
+raíz es un arreglo	[]
+sin tipo	{"indice":1}
+tipo desconocido	{"tipo":"explotar"}
+un comando no es un evento	{"tipo":"mostrar"}
+listo sin protocolo	{"tipo":"listo","afinidad":true}
+listo con protocolo decimal	{"tipo":"listo","protocolo":1.5,"afinidad":true}
+listo con afinidad en texto	{"tipo":"listo","protocolo":1,"afinidad":"si"}
+listo sin afinidad	{"tipo":"listo","protocolo":1}
+bloqueSeleccionado negativo	{"tipo":"bloqueSeleccionado","indice":-3}
+bloqueSeleccionado sin índice	{"tipo":"bloqueSeleccionado"}
+visibilidadCambiada sin visible	{"tipo":"visibilidadCambiada"}
+visibilidadCambiada con visible en texto	{"tipo":"visibilidadCambiada","visible":"true"}
+error sin mensaje	{"tipo":"error"}
+error con mensaje que no es texto	{"tipo":"error","mensaje":42}
+error con código que no es texto	{"tipo":"error","mensaje":"x","codigo":5}

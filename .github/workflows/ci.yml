@@ -1,0 +1,86 @@
+# Pruebas automáticas de Ghost Code en cada cambio.
+#   - «pruebas»: compila TypeScript y corre todas las pruebas, en Linux y en Windows.
+#   - «visor»: en Windows compila el ejecutable ghost-viewer.exe (C# autocontenido) y lo prueba de verdad contra el contrato.
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    name: Pruebas (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v5
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # «npm test» compila con tsc y corre todas las pruebas (no necesita el .exe)
+      - name: Compilar y probar
+        run: npm test
+
+  visor:
+    name: Visor real (ghost-viewer.exe)
+    runs-on: windows-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v5
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Preparar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # El visor usa WebView2; si el equipo no lo trae, se instala el Runtime oficial de Microsoft
+      - name: Asegurar WebView2 Runtime
+        shell: pwsh
+        run: |
+          $clave = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'
+          if (Test-Path $clave) { "WebView2 ya instalado: $((Get-ItemProperty $clave).pv)"; exit 0 }
+          $instalador = Join-Path $env:RUNNER_TEMP 'MicrosoftEdgeWebview2Setup.exe'
+          Invoke-WebRequest 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile $instalador
+          Start-Process $instalador -ArgumentList '/silent', '/install' -Wait
+          if (-not (Test-Path $clave)) { throw 'No se pudo instalar WebView2 Runtime.' }
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar la extensión
+        run: npm run compile
+
+      - name: Compilar el visor (autocontenido, win-x64)
+        run: npm run compilar:visor
+
+      - name: Comprobar bin/ (autocontenido y sin archivos sobrantes)
+        run: npm run verificar:paquete
+
+      - name: Probar el visor real contra el contrato
+        run: npm run test:exe

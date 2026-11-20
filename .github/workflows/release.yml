@@ -1,0 +1,91 @@
+# Publica una versión nueva de Ghost Code.
+# Se activa al subir una etiqueta de versión (por ejemplo v0.1.0):
+#   1. Compila la extensión y el visor ghost-viewer.exe (C# autocontenido, win-x64) y corre las pruebas.
+#   2. Crea el instalador (.vsix) para win32-x64 y comprueba su contenido.
+#   3. Lo publica en GitHub → Releases (como "pre-release" mientras la versión sea 0.x).
+name: Publicar versión
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write # necesario para crear el Release
+
+jobs:
+  vsix:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v5
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Preparar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Comprobar que la etiqueta coincide con la versión de package.json
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "v$VERSION" != "${{ github.ref_name }}" ]; then
+            echo "::error::La etiqueta ${{ github.ref_name }} no coincide con la versión de package.json (v$VERSION). Cambia una de las dos."
+            exit 1
+          fi
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar y probar
+        run: npm test
+
+      - name: Compilar el visor (autocontenido, win-x64)
+        run: npm run compilar:visor
+
+      # «npm run package» compila de nuevo, revisa bin/ y crea release/ghost-code-win32-x64-<versión>.vsix
+      - name: Crear el instalador (.vsix)
+        run: npm run package
+
+      - name: Comprobar el contenido del .vsix
+        run: npm run verificar:vsix
+
+      # Si el Release ya existe (por ejemplo al repetir la ejecución) se reutiliza y se reemplaza el archivo.
+      - name: Publicar el Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          FILE=$(ls release/*.vsix | head -n 1)
+          NOMBRE=$(basename "$FILE")
+
+          # Notas: la sección de esta versión en CHANGELOG.md
+          awk -v v="## $VERSION" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md > notas.md
+          [ -s notas.md ] || echo "Versión $VERSION" > notas.md
+          {
+            echo
+            echo "---"
+            echo "**Instalación:** descarga el archivo \`.vsix\` y ejecuta"
+            echo "\`code --install-extension $NOMBRE\`"
+            echo
+            echo "Requiere Windows 10 (versión 2004 o posterior) o Windows 11, de 64 bits."
+          } >> notas.md
+
+          # Mientras la versión sea 0.x se marca como pre-release
+          FLAGS=""
+          case "$VERSION" in 0.*) FLAGS="--prerelease" ;; esac
+
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "$FILE" --clobber
+          else
+            gh release create "$TAG" "$FILE" --title "Ghost Code v$VERSION" --notes-file notas.md $FLAGS
+          fi

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Ghost Code</title>
+<!-- Los estilos del resaltador y el resaltador mismo se insertan al cargar (Pagina.cs): el visor no usa la red -->
+<style id="css-claro" media="not all">/*{{CSS_CLARO}}*/</style>
+<style id="css-oscuro" media="all">/*{{CSS_OSCURO}}*/</style>
+<style>
+  :root { color-scheme: dark; }
+  body.oscuro { --fondo: #0d1117; --texto: #e6edf3; --borde: #30363d; --suave: #161b22; --acento: #2f81f7; --tenue: #8b949e; }
+  body.claro  { --fondo: #ffffff; --texto: #1f2328; --borde: #d0d7de; --suave: #f6f8fa; --acento: #0969da; --tenue: #656d76; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--fondo); color: var(--texto); font: 13px/1.5 "Segoe UI", system-ui, sans-serif; overflow-y: auto; }
+  #titulo { position: sticky; top: 0; z-index: 1; margin: 0; padding: 8px 14px; font-size: 12px; font-weight: 600;
+            color: var(--tenue); background: var(--fondo); border-bottom: 1px solid var(--borde); }
+  #vacio { padding: 24px 14px; color: var(--tenue); }
+  .bloque { margin: 10px; border: 1px solid var(--borde); border-left: 4px solid var(--borde); border-radius: 6px; background: var(--suave); cursor: pointer; }
+  .bloque.actual { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .bloque header { padding: 4px 10px; font-size: 11px; font-weight: 600; letter-spacing: .02em; color: var(--tenue); border-bottom: 1px solid var(--borde); }
+  .bloque.actual header { color: var(--acento); }
+  pre { margin: 0; padding: 10px; overflow-x: auto; user-select: text; }
+  code { font: 13px/1.45 "Cascadia Code", Consolas, "Courier New", monospace; white-space: pre; }
+  .hljs { background: transparent !important; padding: 0 !important; }
+  /* Barras de desplazamiento del color del tema (las del sistema salen blancas) */
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+  ::-webkit-scrollbar-thumb { border-radius: 6px; border: 3px solid transparent; background-clip: content-box; }
+  body.oscuro ::-webkit-scrollbar-thumb { background-color: #30363d; }
+  body.oscuro ::-webkit-scrollbar-thumb:hover { background-color: #484f58; }
+  body.claro ::-webkit-scrollbar-thumb { background-color: #c1c7ce; }
+  body.claro ::-webkit-scrollbar-thumb:hover { background-color: #a6adb5; }
+</style>
+<script>/*{{HLJS}}*/</script>
+</head>
+<body class="oscuro">
+<h1 id="titulo" hidden></h1>
+<div id="vacio">Sin guía cargada.</div>
+<main id="guia"></main>
+<script>
+(function () {
+  'use strict';
+  const raiz = document.getElementById('guia');
+  const titulo = document.getElementById('titulo');
+  const vacio = document.getElementById('vacio');
+  const claro = document.getElementById('css-claro');
+  const oscuro = document.getElementById('css-oscuro');
+  // Nombres de lenguaje de VS Code que el resaltador conoce con otro nombre
+  const ALIAS = { typescriptreact: 'typescript', javascriptreact: 'javascript', jsonc: 'json', shellscript: 'bash', 'objective-c': 'objectivec' };
+  const enviar = (m) => window.chrome && window.chrome.webview && window.chrome.webview.postMessage(m);
+
+  function seleccionar(indice, desdeClic) {
+    const anterior = raiz.querySelector('.bloque.actual');
+    if (anterior) anterior.classList.remove('actual');
+    const nuevo = raiz.querySelector('[data-i="' + String(indice) + '"]');
+    if (!nuevo) return;
+    nuevo.classList.add('actual');
+    nuevo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    if (desdeClic) enviar({ tipo: 'seleccionar', indice: indice });
+  }
+
+  function cargar(m) {
+    raiz.textContent = '';
+    titulo.textContent = m.titulo || '';
+    titulo.hidden = !m.titulo;
+    vacio.hidden = m.bloques.length > 0;
+    const nombre = String(m.lenguaje || '').toLowerCase();
+    const lenguaje = ALIAS[nombre] || nombre;
+    const conocido = lenguaje !== '' && hljs.getLanguage(lenguaje);
+    for (const b of m.bloques) {
+      const seccion = document.createElement('section');
+      seccion.className = 'bloque';
+      seccion.dataset.i = String(b.indice);
+      const cabecera = document.createElement('header');
+      cabecera.textContent = b.titulo;
+      const pre = document.createElement('pre');
+      const codigo = document.createElement('code');
+      codigo.textContent = b.texto; // siempre como texto, nunca como HTML
+      if (conocido) {
+        codigo.className = 'language-' + lenguaje;
+        hljs.highlightElement(codigo);
+      }
+      pre.appendChild(codigo);
+      seccion.append(cabecera, pre);
+      seccion.addEventListener('click', () => seleccionar(b.indice, true));
+      raiz.appendChild(seccion);
+    }
+  }
+
+  function tema(valor) {
+    document.body.className = valor === 'claro' ? 'claro' : 'oscuro';
+    document.documentElement.style.colorScheme = valor === 'claro' ? 'light' : 'dark';
+    claro.media = valor === 'claro' ? 'all' : 'not all';
+    oscuro.media = valor === 'claro' ? 'not all' : 'all';
+  }
+
+  window.chrome.webview.addEventListener('message', (e) => {
+    const m = e.data;
+    if (!m || typeof m !== 'object') return;
+    if (m.tipo === 'cargarGuia') cargar(m);
+    else if (m.tipo === 'seleccionar') seleccionar(m.indice, false);
+    else if (m.tipo === 'tema') tema(m.valor);
+  });
+
+  // Solo lectura: no se arrastra ni se suelta nada sobre la página
+  window.addEventListener('dragover', (e) => e.preventDefault());
+  window.addEventListener('drop', (e) => e.preventDefault());
+})();
+</script>
+</body>
+</html>

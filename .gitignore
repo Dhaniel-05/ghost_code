@@ -1,0 +1,18 @@
+# Dependencias y compilado (se regeneran con npm install / npm run compile)
+node_modules/
+out/
+
+# Ejecutable del visor (se genera con «npm run compilar:visor») y restos de la compilación de C#
+bin/
+helper/ghost-viewer/bin/
+helper/ghost-viewer/obj/
+
+# Instaladores (.vsix): se generan al empaquetar; los oficiales van en GitHub → Releases
+*.vsix
+release/
+
+# Varios
+.vscode-test/
+*.log
+.DS_Store
+Thumbs.db

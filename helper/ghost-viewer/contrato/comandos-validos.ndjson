@@ -1,0 +1,12 @@
+{"tipo":"mostrar"}
+{"tipo":"ocultar"}
+{"tipo":"cargarGuia","titulo":"Servidor Express","lenguaje":"typescript","bloques":[{"indice":0,"titulo":"Imports","texto":"import express from \"express\";"},{"indice":1,"titulo":"Ruta","texto":"app.get(\"/\", (req, res) => {\n  res.send(\"hola ñandú 😀\");\n});"}]}
+{"tipo":"cargarGuia","titulo":"","lenguaje":"","bloques":[]}
+{"tipo":"seleccionarBloque","indice":0}
+{"tipo":"seleccionarBloque","indice":41}
+{"tipo":"siempreAlFrente","valor":true}
+{"tipo":"siempreAlFrente","valor":false}
+{"tipo":"tema","valor":"claro"}
+{"tipo":"tema","valor":"oscuro"}
+{"tipo":"cerrar"}
+{"tipo":"mostrar","campoDeUnaVersionFutura":123}

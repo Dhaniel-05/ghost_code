@@ -1,0 +1,23 @@
+no es JSON	esto no es json
+JSON incompleto	{"tipo":"mostrar"
+raíz es un arreglo	[{"tipo":"mostrar"}]
+raíz es nula	null
+raíz es un número	5
+sin tipo	{"valor":true}
+tipo desconocido	{"tipo":"explotar"}
+tipo no es texto	{"tipo":7}
+un evento no es un comando	{"tipo":"listo","protocolo":1,"afinidad":true}
+seleccionarBloque sin índice	{"tipo":"seleccionarBloque"}
+seleccionarBloque con índice negativo	{"tipo":"seleccionarBloque","indice":-1}
+seleccionarBloque con índice decimal	{"tipo":"seleccionarBloque","indice":1.5}
+seleccionarBloque con índice en texto	{"tipo":"seleccionarBloque","indice":"2"}
+siempreAlFrente con valor en texto	{"tipo":"siempreAlFrente","valor":"true"}
+siempreAlFrente sin valor	{"tipo":"siempreAlFrente"}
+tema desconocido	{"tipo":"tema","valor":"rojo"}
+cargarGuia sin bloques	{"tipo":"cargarGuia","titulo":"x","lenguaje":"js"}
+cargarGuia con bloques que no es arreglo	{"tipo":"cargarGuia","titulo":"x","lenguaje":"js","bloques":{}}
+cargarGuia sin título	{"tipo":"cargarGuia","lenguaje":"js","bloques":[]}
+cargarGuia sin lenguaje	{"tipo":"cargarGuia","titulo":"x","bloques":[]}
+bloque sin texto	{"tipo":"cargarGuia","titulo":"x","lenguaje":"js","bloques":[{"indice":0,"titulo":"a"}]}
+bloque con índice decimal	{"tipo":"cargarGuia","titulo":"x","lenguaje":"js","bloques":[{"indice":0.5,"titulo":"a","texto":"t"}]}
+bloque que no es objeto	{"tipo":"cargarGuia","titulo":"x","lenguaje":"js","bloques":["texto"]}

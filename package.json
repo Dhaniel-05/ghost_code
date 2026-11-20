@@ -1,0 +1,337 @@
+{
+  "name": "ghost-code",
+  "displayName": "Ghost Code",
+  "description": "Guía de código invisible para grabaciones y videollamadas: un visor protegido contra captura y un modo de Live Coding paso a paso.",
+  "version": "0.1.0",
+  "publisher": "ramcrack",
+  "license": "MIT",
+  "author": {
+    "name": "Daniel Alfonso Martínez Payán (Ramcrack)"
+  },
+  "icon": "media/ghost.png",
+  "galleryBanner": {
+    "color": "#0d1117",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ramcrack/ghost-code.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ramcrack/ghost-code/issues"
+  },
+  "homepage": "https://github.com/ramcrack/ghost-code#readme",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "live coding",
+    "presentation",
+    "teleprompter",
+    "screen share",
+    "ghost",
+    "presentación",
+    "grabación",
+    "guía de código"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": false,
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ghostCode",
+          "title": "Ghost Code",
+          "icon": "media/ghost.svg"
+        }
+      ]
+    },
+    "views": {
+      "ghostCode": [
+        {
+          "id": "ghostCode.guias",
+          "name": "Guías"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "ghostCode.guias",
+        "contents": "Aún no hay una guía cargada.\n[Cargar guía…](command:ghostCode.loadGuide)\n[Usar el archivo actual como guía](command:ghostCode.useActiveFileAsGuide)\nUna guía es un archivo de código dividido en bloques con marcadores como `// @@paso: título`."
+      }
+    ],
+    "commands": [
+      {
+        "command": "ghostCode.ghostMode",
+        "title": "Modo Fantasma: pasar este archivo al visor y cerrar su pestaña",
+        "category": "Ghost Code",
+        "icon": {
+          "light": "media/ghost-claro.svg",
+          "dark": "media/ghost-oscuro.svg"
+        }
+      },
+      {
+        "command": "ghostCode.toggleVisor",
+        "title": "Mostrar u ocultar el visor",
+        "category": "Ghost Code",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "ghostCode.toggleSiempreAlFrente",
+        "title": "Visor siempre al frente (alternar)",
+        "category": "Ghost Code",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "ghostCode.loadGuide",
+        "title": "Cargar guía…",
+        "category": "Ghost Code",
+        "icon": "$(add)"
+      },
+      {
+        "command": "ghostCode.useActiveFileAsGuide",
+        "title": "Usar el archivo actual como guía",
+        "category": "Ghost Code",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "ghostCode.nextBlock",
+        "title": "Insertar el siguiente bloque",
+        "category": "Ghost Code",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "ghostCode.typeNextBlock",
+        "title": "Teclear el siguiente bloque (letra por letra)",
+        "category": "Ghost Code",
+        "icon": "$(keyboard)"
+      },
+      {
+        "command": "ghostCode.prevBlock",
+        "title": "Retroceder el último bloque",
+        "category": "Ghost Code",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "ghostCode.cancelTyping",
+        "title": "Cancelar el tecleo",
+        "category": "Ghost Code"
+      },
+      {
+        "command": "ghostCode.selectBlock",
+        "title": "Ver bloque en el visor",
+        "category": "Ghost Code"
+      },
+      {
+        "command": "ghostCode.activateGuide",
+        "title": "Activar guía",
+        "category": "Ghost Code",
+        "icon": "$(check)"
+      },
+      {
+        "command": "ghostCode.removeGuide",
+        "title": "Quitar guía",
+        "category": "Ghost Code",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "ghostCode.resetGuide",
+        "title": "Reiniciar el progreso de la guía",
+        "category": "Ghost Code",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "ghostCode.showOutput",
+        "title": "Mostrar la salida",
+        "category": "Ghost Code",
+        "icon": "$(output)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "ghostCode.toggleVisor",
+        "key": "ctrl+alt+h"
+      },
+      {
+        "command": "ghostCode.nextBlock",
+        "key": "ctrl+alt+right",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "ghostCode.prevBlock",
+        "key": "ctrl+alt+left",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "ghostCode.typeNextBlock",
+        "key": "ctrl+alt+shift+right",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "ghostCode.cancelTyping",
+        "key": "escape",
+        "when": "ghostCode.tecleando"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "ghostCode.selectBlock",
+          "when": "false"
+        },
+        {
+          "command": "ghostCode.activateGuide",
+          "when": "false"
+        },
+        {
+          "command": "ghostCode.removeGuide",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "ghostCode.loadGuide",
+          "when": "view == ghostCode.guias",
+          "group": "navigation@1"
+        },
+        {
+          "command": "ghostCode.useActiveFileAsGuide",
+          "when": "view == ghostCode.guias",
+          "group": "navigation@2"
+        },
+        {
+          "command": "ghostCode.resetGuide",
+          "when": "view == ghostCode.guias && ghostCode.guiaCargada",
+          "group": "navigation@3"
+        },
+        {
+          "command": "ghostCode.showOutput",
+          "when": "view == ghostCode.guias",
+          "group": "overflow@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "ghostCode.activateGuide",
+          "when": "view == ghostCode.guias && viewItem == guia",
+          "group": "inline@1"
+        },
+        {
+          "command": "ghostCode.removeGuide",
+          "when": "view == ghostCode.guias && viewItem =~ /^guia/",
+          "group": "inline@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "ghostCode.loadGuide",
+          "when": "resourceScheme == file && !explorerResourceIsFolder",
+          "group": "navigation@1"
+        },
+        {
+          "command": "ghostCode.ghostMode",
+          "when": "resourceScheme == file && !explorerResourceIsFolder",
+          "group": "navigation@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "ghostCode.ghostMode",
+          "when": "resourceScheme == file",
+          "group": "navigation@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Ghost Code",
+      "properties": {
+        "ghostCode.tecleo.caracteresPorSegundo": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "maximum": 200,
+          "description": "Velocidad del modo de tecleo letra por letra, en caracteres por segundo."
+        },
+        "ghostCode.visor.siempreAlFrente": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mantener el visor siempre por encima de las demás ventanas."
+        },
+        "ghostCode.visor.tema": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "claro",
+            "oscuro"
+          ],
+          "default": "auto",
+          "description": "Tema del visor. «auto» sigue el tema de VS Code."
+        },
+        "ghostCode.visor.rutaEjecutable": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "description": "Ruta de ghost-viewer.exe. Vacío = el que viene con la extensión. Solo se lee de la configuración de usuario o de la máquina, nunca de un proyecto."
+        },
+        "ghostCode.arbolDiscreto": {
+          "type": "boolean",
+          "default": false,
+          "description": "En la vista «Guías» no mostrar nombres de archivo ni títulos de bloque (solo «Guía 1», «Paso 1»…). Útil si la barra lateral se ve en pantalla."
+        },
+        "ghostCode.mostrarBarraDeEstado": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mostrar el indicador de Ghost Code en la barra de estado."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile && node scripts/verificar-paquete.js",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test:parser": "node scripts/test-parser.js",
+    "test:motor": "node scripts/test-motor.js",
+    "test:tecleo": "node scripts/test-tecleo.js",
+    "test:formato": "node scripts/test-formato.js",
+    "test:live": "node scripts/test-live.js",
+    "test:live-tecleo": "node scripts/test-live-tecleo.js",
+    "test:protocolo": "node scripts/test-protocolo.js",
+    "test:contrato": "node scripts/test-contrato.js",
+    "test:ayudante": "node scripts/test-ayudante.js",
+    "test:extension": "node scripts/test-extension.js",
+    "test": "npm run compile && npm run test:parser && npm run test:motor && npm run test:tecleo && npm run test:formato && npm run test:live && npm run test:live-tecleo && npm run test:protocolo && npm run test:contrato && npm run test:ayudante && npm run test:extension",
+    "compilar:visor": "dotnet publish helper/ghost-viewer/GhostViewer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o bin/win32-x64",
+    "test:exe": "node scripts/test-exe.js",
+    "package": "node -e \"require('fs').mkdirSync('release',{recursive:true})\" && vsce package --target win32-x64 --no-dependencies --out release/",
+    "verificar:paquete": "node scripts/verificar-paquete.js",
+    "verificar:vsix": "node scripts/verificar-paquete.js --vsix"
+  },
+  "devDependencies": {
+    "@highlightjs/cdn-assets": "11.10.0",
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.9.2",
+    "typescript": "^5.4.0"
+  }
+}

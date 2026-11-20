@@ -1,0 +1,8 @@
+{"tipo":"listo","protocolo":1,"afinidad":true}
+{"tipo":"listo","protocolo":1,"afinidad":false}
+{"tipo":"bloqueSeleccionado","indice":2}
+{"tipo":"visibilidadCambiada","visible":true}
+{"tipo":"visibilidadCambiada","visible":false}
+{"tipo":"error","mensaje":"WebView2 no está instalado","codigo":"webview2-ausente"}
+{"tipo":"error","mensaje":"algo falló"}
+{"tipo":"bloqueSeleccionado","indice":0,"campoDeUnaVersionFutura":true}
