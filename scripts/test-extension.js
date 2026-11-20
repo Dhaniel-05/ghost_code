@@ -182,8 +182,10 @@ const item = (nodo) => proveedor().getTreeItem(nodo);
   caso('metadatos del Marketplace: MIT, icono PNG de 256×256, repositorio, palabras clave y archivos de documentación', () => {
     assert.strictEqual(m.license, 'MIT');
     assert.deepStrictEqual(m.categories, ['Other']);
-    assert.ok(/^https:\/\/github\.com\/[\w.-]+\/ghost-code(\.git)?$/.test(m.repository.url), 'repository.url');
-    assert.ok(/^https:\/\/github\.com\/[\w.-]+\/ghost-code\/issues$/.test(m.bugs.url), 'bugs.url');
+    // el repositorio de GitHub se llama ghost_code (con guion bajo); la extensión, ghost-code
+    assert.strictEqual(m.repository.url, 'https://github.com/Dhaniel-05/ghost_code.git');
+    assert.strictEqual(m.bugs.url, 'https://github.com/Dhaniel-05/ghost_code/issues');
+    assert.strictEqual(m.homepage, 'https://github.com/Dhaniel-05/ghost_code#readme');
     for (const k of ['live coding', 'presentation', 'teleprompter', 'screen share', 'ghost']) assert.ok(m.keywords.includes(k), `falta la palabra clave «${k}»`);
     assert.strictEqual(m.icon, 'media/ghost.png');
     const png = fs.readFileSync(path.join(raiz, m.icon));

@@ -15,12 +15,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ramcrack/ghost-code.git"
+    "url": "https://github.com/Dhaniel-05/ghost_code.git"
   },
   "bugs": {
-    "url": "https://github.com/ramcrack/ghost-code/issues"
+    "url": "https://github.com/Dhaniel-05/ghost_code/issues"
   },
-  "homepage": "https://github.com/ramcrack/ghost-code#readme",
+  "homepage": "https://github.com/Dhaniel-05/ghost_code#readme",
   "engines": {
     "vscode": "^1.85.0"
   },

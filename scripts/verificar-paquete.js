@@ -29,6 +29,11 @@ function ultimoVsix() {
   return path.join(dir, lista.map((f) => ({ f, t: fs.statSync(path.join(dir, f)).mtimeMs })).sort((a, b) => b.t - a.t)[0].f);
 }
 
+// En Windows se usa el tar del sistema (bsdtar, lee .zip). Desde Git Bash «tar» sería el GNU tar, que no lo lee.
+function tarDeWindows() {
+  return process.platform === 'win32' ? path.join(process.env.SystemRoot || 'C:/Windows', 'System32', 'tar.exe') : 'tar';
+}
+
 function revisarVsix(ruta) {
   if (!ruta || !fs.existsSync(ruta)) {
     problemas.push(`No se encontró el .vsix (${ruta ?? 'release/*.vsix'}): ejecuta «npm run package».`);
@@ -37,7 +42,7 @@ function revisarVsix(ruta) {
   // `tar` de Windows (bsdtar) y de macOS lee .zip; en Linux hace falta bsdtar, por eso esta revisión se usa en Windows
   let entradas;
   try {
-    entradas = execFileSync('tar', ['-tf', ruta], { encoding: 'utf8', maxBuffer: 1 << 26 }).split(/\r?\n/).filter(Boolean);
+    entradas = execFileSync(tarDeWindows(), ['-tf', ruta], { encoding: 'utf8', maxBuffer: 1 << 26 }).split(/\r?\n/).filter(Boolean);
   } catch (e) {
     problemas.push(`No se pudo listar el .vsix con «tar»: ${e.message}`);
     return;
