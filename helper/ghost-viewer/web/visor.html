@@ -9,11 +9,27 @@
 <style id="css-oscuro" media="all">/*{{CSS_OSCURO}}*/</style>
 <style>
   :root { color-scheme: dark; }
-  body.oscuro { --fondo: #0d1117; --texto: #e6edf3; --borde: #30363d; --suave: #161b22; --acento: #2f81f7; --tenue: #8b949e; }
-  body.claro  { --fondo: #ffffff; --texto: #1f2328; --borde: #d0d7de; --suave: #f6f8fa; --acento: #0969da; --tenue: #656d76; }
+  body.oscuro { --fondo: #0d1117; --texto: #e6edf3; --borde: #30363d; --suave: #161b22; --acento: #2f81f7; --tenue: #8b949e; --boton: #21262d; --boton-hover: #30363d; }
+  body.claro  { --fondo: #ffffff; --texto: #1f2328; --borde: #d0d7de; --suave: #f6f8fa; --acento: #0969da; --tenue: #656d76; --boton: #eaeef2; --boton-hover: #d0d7de; }
   html, body { margin: 0; height: 100%; }
   body { background: var(--fondo); color: var(--texto); font: 13px/1.5 "Segoe UI", system-ui, sans-serif; overflow-y: auto; }
-  #titulo { position: sticky; top: 0; z-index: 1; margin: 0; padding: 8px 14px; font-size: 12px; font-weight: 600;
+
+  /* Cabecera propia: ojo (escudo), reducir a barra compacta y maximizar. Siempre visible, también en modo compacto. */
+  #barra { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 6px; height: 36px; box-sizing: border-box; padding: 0 8px 0 12px;
+           background: var(--fondo); border-bottom: 1px solid var(--borde); }
+  #marca { font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--tenue); user-select: none; }
+  #relleno { flex: 1; }
+  #barra button { display: inline-grid; place-items: center; width: 28px; height: 24px; padding: 0; border: 0; border-radius: 5px; cursor: pointer;
+                  color: var(--texto); background: var(--boton); }
+  #barra button:hover { background: var(--boton-hover); }
+  #barra button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  body.escudo #b-ojo { color: #fff; background: var(--acento); }
+  /* los iconos que no corresponden al estado se ocultan */
+  body.escudo .i-ojo-abierto, body:not(.escudo) .i-ojo-cerrado { display: none; }
+  body.compacto .i-reducir, body:not(.compacto) .i-expandir { display: none; }
+  body.maximizado .i-maximizar, body:not(.maximizado) .i-restaurar { display: none; }
+
+  #titulo { position: sticky; top: 36px; z-index: 2; margin: 0; padding: 8px 14px; font-size: 12px; font-weight: 600;
             color: var(--tenue); background: var(--fondo); border-bottom: 1px solid var(--borde); }
   #vacio { padding: 24px 14px; color: var(--tenue); }
   .bloque { margin: 10px; border: 1px solid var(--borde); border-left: 4px solid var(--borde); border-radius: 6px; background: var(--suave); cursor: pointer; }
@@ -23,6 +39,18 @@
   pre { margin: 0; padding: 10px; overflow-x: auto; user-select: text; }
   code { font: 13px/1.45 "Cascadia Code", Consolas, "Courier New", monospace; white-space: pre; }
   .hljs { background: transparent !important; padding: 0 !important; }
+
+  /* Escudo: un panel OPACO cubre el código (un desenfoque se podría leer) y el contenido deja de mostrarse */
+  #panel-escudo { display: none; place-items: center; text-align: center; padding: 48px 16px; color: var(--tenue); }
+  #panel-escudo svg { width: 40px; height: 40px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  #panel-escudo p { margin: 10px 0 0; font-size: 13px; }
+  body.escudo #panel-escudo { display: grid; }
+  body.escudo main, body.escudo #titulo, body.escudo #vacio { display: none !important; }
+
+  /* Barra compacta: solo la cabecera */
+  body.compacto { overflow: hidden; }
+  body.compacto main, body.compacto #titulo, body.compacto #vacio, body.compacto #panel-escudo { display: none !important; }
+
   /* Barras de desplazamiento del color del tema (las del sistema salen blancas) */
   ::-webkit-scrollbar { width: 12px; height: 12px; }
   ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
@@ -35,8 +63,30 @@
 <script>/*{{HLJS}}*/</script>
 </head>
 <body class="oscuro">
+<header id="barra">
+  <span id="marca">GHOST</span>
+  <span id="relleno"></span>
+  <button id="b-ojo" type="button" title="Cubrir el código" aria-label="Cubrir el código">
+    <svg class="i-ojo-abierto" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+    <svg class="i-ojo-cerrado" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4"/><path d="M6.6 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7c1.5 0 2.9-.4 4.1-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+  </button>
+  <button id="b-min" type="button" title="Reducir a barra compacta" aria-label="Reducir a barra compacta">
+    <svg class="i-reducir" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
+    <svg class="i-expandir" viewBox="0 0 24 24"><path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6"/></svg>
+  </button>
+  <button id="b-max" type="button" title="Maximizar" aria-label="Maximizar">
+    <svg class="i-maximizar" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg>
+    <svg class="i-restaurar" viewBox="0 0 24 24"><rect x="4" y="8" width="12" height="12" rx="1.5"/><path d="M8 8V5.5A1.5 1.5 0 0 1 9.5 4H18.5A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H16"/></svg>
+  </button>
+</header>
 <h1 id="titulo" hidden></h1>
 <div id="vacio">Sin guía cargada.</div>
+<div id="panel-escudo">
+  <div>
+    <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <p>Contenido oculto</p>
+  </div>
+</div>
 <main id="guia"></main>
 <script>
 (function () {
@@ -46,9 +96,13 @@
   const vacio = document.getElementById('vacio');
   const claro = document.getElementById('css-claro');
   const oscuro = document.getElementById('css-oscuro');
+  const bOjo = document.getElementById('b-ojo');
+  const bMin = document.getElementById('b-min');
+  const bMax = document.getElementById('b-max');
   // Nombres de lenguaje de VS Code que el resaltador conoce con otro nombre
   const ALIAS = { typescriptreact: 'typescript', javascriptreact: 'javascript', jsonc: 'json', shellscript: 'bash', 'objective-c': 'objectivec' };
   const enviar = (m) => window.chrome && window.chrome.webview && window.chrome.webview.postMessage(m);
+  const cuerpo = document.body;
 
   function seleccionar(indice, desdeClic) {
     const anterior = raiz.querySelector('.bloque.actual');
@@ -89,11 +143,35 @@
   }
 
   function tema(valor) {
-    document.body.className = valor === 'claro' ? 'claro' : 'oscuro';
-    document.documentElement.style.colorScheme = valor === 'claro' ? 'light' : 'dark';
-    claro.media = valor === 'claro' ? 'all' : 'not all';
-    oscuro.media = valor === 'claro' ? 'not all' : 'all';
+    const esClaro = valor === 'claro';
+    cuerpo.classList.toggle('claro', esClaro);
+    cuerpo.classList.toggle('oscuro', !esClaro);
+    document.documentElement.style.colorScheme = esClaro ? 'light' : 'dark';
+    claro.media = esClaro ? 'all' : 'not all';
+    oscuro.media = esClaro ? 'not all' : 'all';
   }
+
+  // El estado (escudo y modo) lo decide el programa: la página solo lo muestra y pide cambios
+  function escudo(activo) {
+    cuerpo.classList.toggle('escudo', !!activo);
+    const texto = activo ? 'Mostrar el código' : 'Cubrir el código';
+    bOjo.title = texto;
+    bOjo.setAttribute('aria-label', texto);
+    bOjo.setAttribute('aria-pressed', activo ? 'true' : 'false');
+  }
+
+  function modo(valor) {
+    cuerpo.classList.toggle('compacto', valor === 'compacto');
+    cuerpo.classList.toggle('maximizado', valor === 'maximizado');
+    bMin.title = valor === 'compacto' ? 'Expandir' : 'Reducir a barra compacta';
+    bMax.title = valor === 'maximizado' ? 'Restaurar' : 'Maximizar';
+    bMin.setAttribute('aria-label', bMin.title);
+    bMax.setAttribute('aria-label', bMax.title);
+  }
+
+  bOjo.addEventListener('click', () => enviar({ tipo: 'escudo', valor: !cuerpo.classList.contains('escudo') }));
+  bMin.addEventListener('click', () => enviar({ tipo: 'modo', valor: cuerpo.classList.contains('compacto') ? 'normal' : 'compacto' }));
+  bMax.addEventListener('click', () => enviar({ tipo: 'modo', valor: cuerpo.classList.contains('maximizado') ? 'normal' : 'maximizado' }));
 
   window.chrome.webview.addEventListener('message', (e) => {
     const m = e.data;
@@ -101,6 +179,8 @@
     if (m.tipo === 'cargarGuia') cargar(m);
     else if (m.tipo === 'seleccionar') seleccionar(m.indice, false);
     else if (m.tipo === 'tema') tema(m.valor);
+    else if (m.tipo === 'escudo') escudo(m.valor);
+    else if (m.tipo === 'modo') modo(m.valor);
   });
 
   // Solo lectura: no se arrastra ni se suelta nada sobre la página

@@ -318,6 +318,35 @@ async function limpiar() {
     assert.deepStrictEqual(JSON.parse(t.ejecuciones()[1][0]), { tipo: 'tema', valor: 'oscuro' });
     assert.deepStrictEqual(JSON.parse(t.ejecuciones()[1][2]), { tipo: 'seleccionarBloque', indice: 1 });
   });
+  await caso('el escudo y el modo (compacto/maximizado) también se recuerdan y se reenvían tras un reinicio, antes de la visibilidad', async () => {
+    const t = crear('cae-la-primera', { reintentos: 2 });
+    await t.a.iniciar();
+    t.a.enviar({ tipo: 'escudo', valor: true });
+    t.a.enviar({ tipo: 'modo', valor: 'compacto' });
+    t.a.enviar({ tipo: 'modo', valor: 'maximizado' });
+    t.a.enviar({ tipo: 'traer' }); // «traer» es una acción puntual: no se recuerda
+    t.a.enviar({ tipo: 'mostrar' });
+    await hasta(() => t.ejecuciones().length === 2 && t.ejecuciones()[1].length >= 3, 4000, 'estado reenviado');
+    assert.deepStrictEqual(tipos(t.ejecuciones()[1]), ['escudo', 'modo', 'mostrar']);
+    assert.deepStrictEqual(JSON.parse(t.ejecuciones()[1][1]), { tipo: 'modo', valor: 'maximizado' });
+  });
+  await caso('«traer» (que muestra la ventana) y los eventos nuevos: llegan; y sin protección de captura «traer» no se envía', async () => {
+    const t = crear('normal');
+    await t.a.iniciar();
+    t.a.enviar({ tipo: 'escudo', valor: true });
+    t.a.enviar({ tipo: 'modo', valor: 'compacto' });
+    t.a.enviar({ tipo: 'traer' });
+    await hasta(() => t.eventos.length === 4, 3000, 'eventos');
+    assert.deepStrictEqual(t.eventos.slice(1), [
+      { tipo: 'escudoCambiado', activo: true },
+      { tipo: 'modoCambiado', valor: 'compacto' },
+      { tipo: 'visibilidadCambiada', visible: true },
+    ]);
+    const s = crear('sin-afinidad');
+    await s.a.iniciar();
+    assert.strictEqual(s.a.enviar({ tipo: 'traer' }), false);
+    assert.strictEqual(s.a.enviar({ tipo: 'escudo', valor: true }), true);
+  });
   await caso('mientras se reinicia, enviar devuelve true y el comando se reenvía al volver', async () => {
     const t = crear('cae-la-primera', { reintentos: 1, esperaReinicioMs: 400 });
     await t.a.iniciar();

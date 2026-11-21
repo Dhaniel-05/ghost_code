@@ -10,6 +10,8 @@ export function registrarComandos(contexto: vscode.ExtensionContext, c: Controla
   // Desde el botón de la pestaña o el Explorador llega el archivo; desde la paleta, nada (se usa el editor activo)
   registrar('ghostMode', (uri?: vscode.Uri) => c.modoFantasma(uri));
   registrar('toggleVisor', () => c.alternarVisor());
+  registrar('toggleShield', () => c.alternarEscudo());
+  registrar('recoverViewer', () => c.recuperarVisor());
   registrar('toggleSiempreAlFrente', () => c.alternarSiempreAlFrente());
   registrar('loadGuide', (uri?: vscode.Uri) => c.cargarDesdeUri(uri));
   registrar('useActiveFileAsGuide', () => c.usarArchivoActual());

@@ -75,6 +75,8 @@ interface Memoria {
   guia?: Comando & { tipo: 'cargarGuia' };
   seleccion?: Comando & { tipo: 'seleccionarBloque' };
   alFrente?: Comando & { tipo: 'siempreAlFrente' };
+  escudo?: Comando & { tipo: 'escudo' };
+  modo?: Comando & { tipo: 'modo' };
   visible?: boolean;
 }
 
@@ -167,7 +169,7 @@ export class Ayudante {
     const estado = this.estadoActual;
     if (estado !== 'listo' && estado !== 'reiniciando') return false;
     // Sin protección de captura no se muestra nada: ni siquiera se recuerda para después
-    if (limpio.tipo === 'mostrar' && !this.proteccion) return false;
+    if ((limpio.tipo === 'mostrar' || limpio.tipo === 'traer') && !this.proteccion) return false; // «traer» también muestra la ventana
 
     this.recordar(limpio);
     if (estado === 'reiniciando') return true;
@@ -360,6 +362,8 @@ export class Ayudante {
       m.seleccion = undefined; // el índice de una guía anterior ya no vale
     } else if (c.tipo === 'seleccionarBloque') m.seleccion = c;
     else if (c.tipo === 'siempreAlFrente') m.alFrente = c;
+    else if (c.tipo === 'escudo') m.escudo = c;
+    else if (c.tipo === 'modo') m.modo = c;
     else if (c.tipo === 'mostrar') m.visible = true;
     else if (c.tipo === 'ocultar') m.visible = false;
   }
@@ -372,6 +376,8 @@ export class Ayudante {
     if (m.guia) lista.push(m.guia);
     if (m.seleccion) lista.push(m.seleccion);
     if (m.alFrente) lista.push(m.alFrente);
+    if (m.escudo) lista.push(m.escudo);
+    if (m.modo) lista.push(m.modo);
     if (m.visible === true && this.proteccion) lista.push({ tipo: 'mostrar' });
     else if (m.visible === false) lista.push({ tipo: 'ocultar' });
     for (const c of lista) this.escribir(p, codificar(c));

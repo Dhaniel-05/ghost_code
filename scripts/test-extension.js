@@ -38,8 +38,11 @@ class AyudanteFalso {
   enviar(c) {
     if (this.estado !== 'listo') return false;
     this.comandos.push(c);
-    if (c.tipo === 'mostrar' && this.proteccionActiva) setImmediate(() => this.emitir({ tipo: 'visibilidadCambiada', visible: true }));
+    const responde = !this.fabrica.silencioso; // un visor «silencioso» no contesta (ventana perdida)
+    if ((c.tipo === 'mostrar' || c.tipo === 'traer') && this.proteccionActiva && responde) setImmediate(() => this.emitir({ tipo: 'visibilidadCambiada', visible: true }));
     if (c.tipo === 'ocultar') setImmediate(() => this.emitir({ tipo: 'visibilidadCambiada', visible: false }));
+    if (c.tipo === 'escudo' && responde) setImmediate(() => this.emitir({ tipo: 'escudoCambiado', activo: c.valor }));
+    if (c.tipo === 'modo' && responde) setImmediate(() => this.emitir({ tipo: 'modoCambiado', valor: c.valor }));
     return true;
   }
   async detener() {
@@ -70,7 +73,7 @@ async function montar({ estado, config = {} } = {}) {
     return f;
   };
   const contexto = vscode.__crearContexto(estado);
-  await arrancar(contexto, { crearAyudante: fabrica.crear });
+  await arrancar(contexto, { crearAyudante: fabrica.crear, esperaVisorMs: 80 });
   return { fabrica, contexto, ejecutar: (id, ...a) => vscode.commands.executeCommand(id, ...a), ayudante: () => fabrica.fakes[0] };
 }
 async function apagar(h) {
@@ -102,9 +105,9 @@ const item = (nodo) => proveedor().getTreeItem(nodo);
   console.log('Extensión: manifiesto');
   const m = manifiesto();
   const comandosManifiesto = (m.contributes?.commands ?? []).map((c) => c.command);
-  const IDS = ['ghostMode', 'toggleVisor', 'toggleSiempreAlFrente', 'loadGuide', 'useActiveFileAsGuide', 'nextBlock', 'typeNextBlock', 'prevBlock', 'cancelTyping', 'selectBlock', 'activateGuide', 'removeGuide', 'resetGuide', 'showOutput'].map((x) => 'ghostCode.' + x);
+  const IDS = ['ghostMode', 'toggleShield', 'recoverViewer', 'toggleVisor', 'toggleSiempreAlFrente', 'loadGuide', 'useActiveFileAsGuide', 'nextBlock', 'typeNextBlock', 'prevBlock', 'cancelTyping', 'selectBlock', 'activateGuide', 'removeGuide', 'resetGuide', 'showOutput'].map((x) => 'ghostCode.' + x);
 
-  caso('declara los 14 comandos, con título y categoría «Ghost Code»', () => {
+  caso('declara los 16 comandos, con título y categoría «Ghost Code»', () => {
     assert.deepStrictEqual([...comandosManifiesto].sort(), [...IDS].sort());
     for (const c of m.contributes.commands) {
       assert.ok(c.title && c.title.length > 3, c.command);
@@ -119,6 +122,8 @@ const item = (nodo) => proveedor().getTreeItem(nodo);
     assert.strictEqual(k('ghostCode.typeNextBlock').key, 'ctrl+alt+shift+right');
     assert.strictEqual(k('ghostCode.cancelTyping').key, 'escape');
     assert.strictEqual(k('ghostCode.cancelTyping').when, 'ghostCode.tecleando');
+    assert.strictEqual(k('ghostCode.toggleShield').key, 'ctrl+alt+e');
+    assert.ok(m.contributes.commands.some((c) => c.command === 'ghostCode.recoverViewer' && /Traer el visor/.test(c.title)));
   });
   caso('botón «Modo Fantasma» en la barra de pestañas (editor/title), con icono claro y oscuro que existen', () => {
     const cmd = m.contributes.commands.find((c) => c.command === 'ghostCode.ghostMode');
@@ -591,6 +596,94 @@ const item = (nodo) => proveedor().getTreeItem(nodo);
   await prueba('«mostrar salida» abre el canal de salida', {}, async (h) => {
     await h.ejecutar('ghostCode.showOutput');
     assert.strictEqual(vscode.__canales.find((c) => c.name === 'Ghost Code').mostrado, 1);
+  });
+
+  console.log('Extensión: escudo y recuperación del visor');
+  await prueba('escudo con el visor abierto: lo manda, lo recuerda y la barra muestra el candado; al quitarlo vuelve el ojo', {}, async (h) => {
+    await h.ejecutar('ghostCode.toggleVisor');
+    await tick();
+    await tick();
+    await h.ejecutar('ghostCode.toggleShield');
+    await tick();
+    await tick();
+    assert.deepStrictEqual(h.ayudante().comandos.at(-1), { tipo: 'escudo', valor: true });
+    assert.strictEqual(vscode.__contextos['ghostCode.escudo'], true);
+    assert.ok(barra().text.includes('$(lock)'), barra().text);
+    await h.ejecutar('ghostCode.toggleShield');
+    await tick();
+    await tick();
+    assert.deepStrictEqual(h.ayudante().comandos.at(-1), { tipo: 'escudo', valor: false });
+    assert.strictEqual(vscode.__contextos['ghostCode.escudo'], false);
+    assert.ok(barra().text.includes('$(eye)') && !barra().text.includes('lock'));
+  });
+  await prueba('escudo antes de abrir el visor: se recuerda y se aplica al arrancar (después de tema y siempre al frente)', {}, async (h) => {
+    await h.ejecutar('ghostCode.toggleShield');
+    assert.strictEqual(h.fabrica.fakes.length, 0, 'no debe arrancar el visor solo por activar el escudo');
+    assert.strictEqual(vscode.__contextos['ghostCode.escudo'], true);
+    await cargar(h);
+    await h.ejecutar('ghostCode.toggleVisor');
+    assert.deepStrictEqual(h.ayudante().tipos(), ['tema', 'siempreAlFrente', 'escudo', 'cargarGuia', 'seleccionarBloque', 'mostrar']);
+  });
+  await prueba('si la persona pulsa el ojo dentro del visor, la extensión se entera (contexto y barra)', {}, async (h) => {
+    await h.ejecutar('ghostCode.toggleVisor');
+    await tick();
+    await tick();
+    h.ayudante().emitir({ tipo: 'escudoCambiado', activo: true });
+    assert.strictEqual(vscode.__contextos['ghostCode.escudo'], true);
+    assert.ok(barra().text.includes('$(lock)'));
+    // y el siguiente toggle del atajo lo quita (parte del estado real, no del último atajo)
+    await h.ejecutar('ghostCode.toggleShield');
+    assert.deepStrictEqual(h.ayudante().comandos.at(-1), { tipo: 'escudo', valor: false });
+  });
+  await prueba('«Traer el visor aquí» con el visor abierto: manda «traer» y lo deja visible', {}, async (h) => {
+    await h.ejecutar('ghostCode.toggleVisor');
+    await tick();
+    await tick();
+    await h.ejecutar('ghostCode.recoverViewer');
+    assert.strictEqual(h.ayudante().comandos.at(-1).tipo, 'traer');
+    assert.strictEqual(vscode.avisos.advertencias.length, 0);
+    assert.strictEqual(vscode.__contextos['ghostCode.visorVisible'], true);
+  });
+  await prueba('«Traer el visor aquí» con el visor cerrado o caído: lo arranca de nuevo y lo trae', {}, async (h) => {
+    await cargar(h);
+    await h.ejecutar('ghostCode.recoverViewer');
+    assert.strictEqual(h.fabrica.fakes.length, 1);
+    assert.deepStrictEqual(h.ayudante().tipos(), ['tema', 'siempreAlFrente', 'cargarGuia', 'seleccionarBloque', 'traer']);
+    h.ayudante().estado = 'fallido'; // el proceso murió
+    await h.ejecutar('ghostCode.recoverViewer');
+    assert.strictEqual(h.fabrica.fakes.length, 2, 'debe crear otro ayudante');
+    assert.strictEqual(h.fabrica.fakes[1].comandos.at(-1).tipo, 'traer');
+  });
+  await prueba('«Traer el visor aquí» sin protección de captura o con el visor roto: avisa y no envía nada', {}, async (h) => {
+    h.fabrica.proteccion = false;
+    await h.ejecutar('ghostCode.recoverViewer');
+    assert.ok(!h.ayudante().tipos().includes('traer'));
+    assert.ok(vscode.avisos.advertencias.some((a) => /captura|protecci/i.test(a)));
+    const h2 = await montar();
+    try {
+      h2.fabrica.error = new ErrorAyudante('no-existe', 'No se encontró ghost-viewer en «X».');
+      await h2.ejecutar('ghostCode.recoverViewer');
+      assert.strictEqual(vscode.avisos.errores.length, 1);
+    } finally {
+      await apagar(h2);
+    }
+  });
+  await prueba('si pides mostrar y el visor no responde: avisa («puede estar perdido») y el botón «Traer el visor» lo trae', {}, async (h) => {
+    h.fabrica.silencioso = true;
+    vscode.__eleccion = 'Traer el visor';
+    await h.ejecutar('ghostCode.toggleVisor');
+    assert.ok(vscode.avisos.advertencias.some((a) => /no respondi/i.test(a)), JSON.stringify(vscode.avisos.advertencias));
+    assert.deepStrictEqual(h.ayudante().tipos().slice(-2), ['mostrar', 'traer']);
+  });
+  await prueba('si responde a tiempo no hay ningún aviso', {}, async (h) => {
+    await h.ejecutar('ghostCode.toggleVisor');
+    assert.deepStrictEqual(vscode.avisos.advertencias, []);
+  });
+  await prueba('los cambios de modo del visor (compacto/maximizado) quedan en el canal de salida', {}, async (h) => {
+    await h.ejecutar('ghostCode.toggleVisor');
+    h.ayudante().emitir({ tipo: 'modoCambiado', valor: 'compacto' });
+    const canal = vscode.__canales.find((c) => c.name === 'Ghost Code');
+    assert.ok(canal.lineas.some((l) => /compacto/.test(l)));
   });
 
   console.log('Extensión: Modo Fantasma');

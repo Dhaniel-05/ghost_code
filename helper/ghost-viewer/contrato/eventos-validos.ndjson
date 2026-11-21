@@ -6,3 +6,8 @@
 {"tipo":"error","mensaje":"WebView2 no está instalado","codigo":"webview2-ausente"}
 {"tipo":"error","mensaje":"algo falló"}
 {"tipo":"bloqueSeleccionado","indice":0,"campoDeUnaVersionFutura":true}
+{"tipo":"escudoCambiado","activo":true}
+{"tipo":"escudoCambiado","activo":false}
+{"tipo":"modoCambiado","valor":"compacto"}
+{"tipo":"modoCambiado","valor":"maximizado"}
+{"tipo":"modoCambiado","valor":"normal"}

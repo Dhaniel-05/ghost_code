@@ -30,6 +30,15 @@ Qué debe cumplir el ejecutable nativo (C# / .NET + WebView2) para que la extens
 - `mostrar` / `ocultar` son inmediatos (`ShowWindow` con `SW_SHOWNOACTIVATE` / `SW_HIDE`, sin robar el foco) y cada cambio emite `visibilidadCambiada`.
 - Se puede mover y cambiar de tamaño; la posición y el tamaño se recuerdan entre sesiones (carpeta de datos del usuario, nunca junto a la guía).
 
+## 3b. Escudo, modos y recuperación (versión 0.1.1)
+- **`escudo` {valor}**: cubre (`true`) o descubre (`false`) el código con un panel opaco (no desenfoque). Responde `escudoCambiado {activo}`. También se puede cambiar con el botón del ojo de la página; el estado vive en el programa y cada cambio emite `escudoCambiado`.
+- **`modo` {valor: normal | compacto | maximizado}**: compacto = barra flotante de ~300×44 (cliente) anclada a su esquina superior derecha; maximizado = área de trabajo de la pantalla actual (sin tapar la barra de tareas). Responde `modoCambiado {valor}`. Solo se recuerda la posición de la ventana normal. Los botones de la página piden el cambio y el programa lo aplica.
+- **`traer`**: restaura si estuviera minimizada, la lleva a una pantalla visible, la muestra, la sube por encima de todo y emite `visibilidadCambiada true` aunque ya se viera (la extensión espera esa respuesta). Con protección de captura caída hace lo mismo que `mostrar`: error `sin-proteccion` y no se muestra.
+- `mostrar` también confirma con `visibilidadCambiada true` si ya estaba visible, y recoloca la ventana si quedó fuera de las pantallas.
+- **Nunca minimizada:** al no tener botón en la barra de tareas, una ventana minimizada no se recuperaría; si algo la minimiza, vuelve a normal.
+- **Siempre al frente** se reaplica cada vez que la ventana pasa a verse (pedirlo con la ventana oculta no se conserva).
+- Al cambiar la disposición de pantallas (monitores, resolución, compartir pantalla) la ventana se recoloca en lo visible; si estaba maximizada, se reajusta.
+
 ## 4. Contenido (solo lectura)
 - WebView2 con una página propia incluida en el ejecutable. **Sin red:** el resaltador de sintaxis va empaquetado (nada de CDN) y se bloquean las navegaciones externas.
 - Sin edición posible (nada `contenteditable`), menú contextual del navegador desactivado, texto seleccionable para poder leerlo.

@@ -19,13 +19,24 @@ export type Comando =
   | { tipo: 'seleccionarBloque'; indice: number }
   | { tipo: 'siempreAlFrente'; valor: boolean }
   | { tipo: 'tema'; valor: 'claro' | 'oscuro' }
+  /** Escudo: cubre el código del visor con un panel opaco (o lo descubre). */
+  | { tipo: 'escudo'; valor: boolean }
+  /** Tamaño del visor: ventana normal, barra compacta flotante o área de trabajo completa. */
+  | { tipo: 'modo'; valor: ModoVisor }
+  /** Recuperar un visor perdido: restaura, lo pone en una pantalla visible, lo muestra y lo trae al frente. */
+  | { tipo: 'traer' }
   | { tipo: 'cerrar' };
+
+export type ModoVisor = 'normal' | 'compacto' | 'maximizado';
+const MODOS: readonly string[] = ['normal', 'compacto', 'maximizado'];
 
 /** Visor → extensión. */
 export type Evento =
   | { tipo: 'listo'; protocolo: number; afinidad: boolean }
   | { tipo: 'bloqueSeleccionado'; indice: number }
   | { tipo: 'visibilidadCambiada'; visible: boolean }
+  | { tipo: 'escudoCambiado'; activo: boolean }
+  | { tipo: 'modoCambiado'; valor: ModoVisor }
   | { tipo: 'error'; mensaje: string; codigo?: string };
 
 export type Decodificado<T> = { ok: true; mensaje: T } | { ok: false; error: string };
@@ -55,6 +66,14 @@ function normalizarComando(o: Objeto): Decodificado<Comando> {
       return ok({ tipo: 'ocultar' });
     case 'cerrar':
       return ok({ tipo: 'cerrar' });
+    case 'traer':
+      return ok({ tipo: 'traer' });
+    case 'escudo':
+      return esBool(o.valor) ? ok({ tipo: 'escudo', valor: o.valor }) : mal('escudo: «valor» debe ser verdadero o falso');
+    case 'modo':
+      return typeof o.valor === 'string' && MODOS.includes(o.valor)
+        ? ok({ tipo: 'modo', valor: o.valor as ModoVisor })
+        : mal('modo: «valor» debe ser «normal», «compacto» o «maximizado»');
     case 'seleccionarBloque':
       return esIndice(o.indice) ? ok({ tipo: 'seleccionarBloque', indice: o.indice }) : mal('seleccionarBloque: «indice» debe ser un entero mayor o igual que 0');
     case 'siempreAlFrente':
@@ -88,6 +107,12 @@ function normalizarEvento(o: Objeto): Decodificado<Evento> {
       return esIndice(o.indice) ? ok({ tipo: 'bloqueSeleccionado', indice: o.indice }) : mal('bloqueSeleccionado: «indice» debe ser un entero mayor o igual que 0');
     case 'visibilidadCambiada':
       return esBool(o.visible) ? ok({ tipo: 'visibilidadCambiada', visible: o.visible }) : mal('visibilidadCambiada: «visible» debe ser verdadero o falso');
+    case 'escudoCambiado':
+      return esBool(o.activo) ? ok({ tipo: 'escudoCambiado', activo: o.activo }) : mal('escudoCambiado: «activo» debe ser verdadero o falso');
+    case 'modoCambiado':
+      return typeof o.valor === 'string' && MODOS.includes(o.valor)
+        ? ok({ tipo: 'modoCambiado', valor: o.valor as ModoVisor })
+        : mal('modoCambiado: «valor» debe ser «normal», «compacto» o «maximizado»');
     case 'error':
       if (!esTexto(o.mensaje)) return mal('error: «mensaje» debe ser texto');
       if (o.codigo !== undefined && !esTexto(o.codigo)) return mal('error: «codigo» debe ser texto');

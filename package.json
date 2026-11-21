@@ -2,7 +2,7 @@
   "name": "ghost-code",
   "displayName": "Ghost Code",
   "description": "Guía de código invisible para grabaciones y videollamadas: un visor protegido contra captura y un modo de Live Coding paso a paso.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "ramcrack",
   "license": "MIT",
   "author": {
@@ -91,6 +91,18 @@
         "icon": "$(eye)"
       },
       {
+        "command": "ghostCode.toggleShield",
+        "title": "Escudo: cubrir o mostrar el código del visor",
+        "category": "Ghost Code",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "ghostCode.recoverViewer",
+        "title": "Traer el visor aquí (si se perdió)",
+        "category": "Ghost Code",
+        "icon": "$(target)"
+      },
+      {
         "command": "ghostCode.toggleSiempreAlFrente",
         "title": "Visor siempre al frente (alternar)",
         "category": "Ghost Code",
@@ -167,6 +179,10 @@
         "key": "ctrl+alt+h"
       },
       {
+        "command": "ghostCode.toggleShield",
+        "key": "ctrl+alt+e"
+      },
+      {
         "command": "ghostCode.nextBlock",
         "key": "ctrl+alt+right",
         "when": "editorTextFocus"
@@ -217,6 +233,11 @@
           "command": "ghostCode.resetGuide",
           "when": "view == ghostCode.guias && ghostCode.guiaCargada",
           "group": "navigation@3"
+        },
+        {
+          "command": "ghostCode.recoverViewer",
+          "when": "view == ghostCode.guias",
+          "group": "navigation@4"
         },
         {
           "command": "ghostCode.showOutput",

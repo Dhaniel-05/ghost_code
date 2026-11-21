@@ -20,6 +20,10 @@ const comandos = [
   { tipo: 'seleccionarBloque', indice: 3 },
   { tipo: 'siempreAlFrente', valor: true },
   { tipo: 'tema', valor: 'oscuro' },
+  { tipo: 'escudo', valor: true },
+  { tipo: 'modo', valor: 'compacto' },
+  { tipo: 'modo', valor: 'maximizado' },
+  { tipo: 'traer' },
   { tipo: 'cerrar' },
 ];
 const eventos = [
@@ -28,6 +32,8 @@ const eventos = [
   { tipo: 'visibilidadCambiada', visible: false },
   { tipo: 'error', mensaje: 'falló', codigo: 'x' },
   { tipo: 'error', mensaje: 'falló' },
+  { tipo: 'escudoCambiado', activo: true },
+  { tipo: 'modoCambiado', valor: 'normal' },
 ];
 
 console.log('Protocolo');
@@ -62,6 +68,11 @@ caso('codificar lanza Error si el mensaje no es válido (y no lanza con uno vál
     { tipo: 'seleccionarBloque', indice: NaN },
     { tipo: 'tema', valor: 'rojo' },
     { tipo: 'siempreAlFrente', valor: 'si' },
+    { tipo: 'escudo', valor: 'si' },
+    { tipo: 'modo', valor: 'diagonal' },
+    { tipo: 'modo' },
+    { tipo: 'escudoCambiado', activo: 1 },
+    { tipo: 'modoCambiado', valor: 'flotante' },
     { tipo: 'cargarGuia', titulo: 'x', lenguaje: 'js', bloques: 'no' },
     { tipo: 'explotar' },
     {},

@@ -21,3 +21,8 @@ cargarGuia sin lenguaje	{"tipo":"cargarGuia","titulo":"x","bloques":[]}
 bloque sin texto	{"tipo":"cargarGuia","titulo":"x","lenguaje":"js","bloques":[{"indice":0,"titulo":"a"}]}
 bloque con índice decimal	{"tipo":"cargarGuia","titulo":"x","lenguaje":"js","bloques":[{"indice":0.5,"titulo":"a","texto":"t"}]}
 bloque que no es objeto	{"tipo":"cargarGuia","titulo":"x","lenguaje":"js","bloques":["texto"]}
+escudo sin valor	{"tipo":"escudo"}
+escudo con valor en texto	{"tipo":"escudo","valor":"true"}
+modo sin valor	{"tipo":"modo"}
+modo desconocido	{"tipo":"modo","valor":"diagonal"}
+modo en número	{"tipo":"modo","valor":1}

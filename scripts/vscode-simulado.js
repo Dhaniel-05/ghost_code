@@ -139,7 +139,13 @@ const vscode = {
   window: { activeTextEditor: undefined },
   avisos: { advertencias: [], informativos: [], errores: [] },
 };
-vscode.window.showWarningMessage = async (m) => void vscode.avisos.advertencias.push(m);
+// Si la prueba deja en __eleccion el texto de un botón, el aviso «lo pulsa» (devuelve ese texto)
+vscode.window.showWarningMessage = async (m, ...botones) => {
+  vscode.avisos.advertencias.push(m);
+  const e = vscode.__eleccion;
+  vscode.__eleccion = undefined;
+  return botones.includes(e) ? e : undefined;
+};
 vscode.window.showInformationMessage = async (m) => void vscode.avisos.informativos.push(m);
 vscode.window.showErrorMessage = async (m) => void vscode.avisos.errores.push(m);
 

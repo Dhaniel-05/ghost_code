@@ -45,6 +45,9 @@ function escuchar({ ignorarCerrar = false } = {}) {
     if (m.tipo === 'seleccionarBloque') enviar({ tipo: 'bloqueSeleccionado', indice: m.indice });
     else if (m.tipo === 'mostrar') enviar({ tipo: 'visibilidadCambiada', visible: true });
     else if (m.tipo === 'ocultar') enviar({ tipo: 'visibilidadCambiada', visible: false });
+    else if (m.tipo === 'traer') enviar({ tipo: 'visibilidadCambiada', visible: true });
+    else if (m.tipo === 'escudo') enviar({ tipo: 'escudoCambiado', activo: m.valor });
+    else if (m.tipo === 'modo') enviar({ tipo: 'modoCambiado', valor: m.valor });
     else if (m.tipo === 'cerrar' && !ignorarCerrar) salir(0);
   });
   rl.on('close', () => salir(0)); // fin de stdin: lo que debe hacer el visor real para no quedar huérfano

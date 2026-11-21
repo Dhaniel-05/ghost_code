@@ -8,6 +8,9 @@ internal abstract record Comando;
 internal sealed record Mostrar : Comando;
 internal sealed record Ocultar : Comando;
 internal sealed record Cerrar : Comando;
+internal sealed record Traer : Comando;                // recuperar un visor perdido
+internal sealed record Escudo(bool Valor) : Comando;    // cubrir o descubrir el código
+internal sealed record Modo(string Valor) : Comando;    // normal | compacto | maximizado
 internal sealed record CargarGuia(string Titulo, string Lenguaje, IReadOnlyList<BloqueGuia> Bloques) : Comando;
 internal sealed record SeleccionarBloque(int Indice) : Comando;
 internal sealed record SiempreAlFrente(bool Valor) : Comando;
@@ -41,6 +44,15 @@ internal static class Protocolo
                 case "mostrar": comando = new Mostrar(); return true;
                 case "ocultar": comando = new Ocultar(); return true;
                 case "cerrar": comando = new Cerrar(); return true;
+                case "traer": comando = new Traer(); return true;
+                case "escudo":
+                    if (!TryBool(raiz, "valor", out var escudo)) { error = "escudo: «valor» debe ser verdadero o falso"; return false; }
+                    comando = new Escudo(escudo);
+                    return true;
+                case "modo":
+                    if (!TryTexto(raiz, "valor", out var modo) || (modo != "normal" && modo != "compacto" && modo != "maximizado")) { error = "modo: «valor» debe ser «normal», «compacto» o «maximizado»"; return false; }
+                    comando = new Modo(modo);
+                    return true;
                 case "seleccionarBloque":
                     if (!TryIndice(raiz, "indice", out var indice)) { error = "seleccionarBloque: «indice» debe ser un entero mayor o igual que 0"; return false; }
                     comando = new SeleccionarBloque(indice);
@@ -119,6 +131,8 @@ internal sealed class SalidaProtocolo
     public void Listo(bool afinidad) => Escribir(new { tipo = "listo", protocolo = Protocolo.Version, afinidad });
     public void BloqueSeleccionado(int indice) => Escribir(new { tipo = "bloqueSeleccionado", indice });
     public void VisibilidadCambiada(bool visible) => Escribir(new { tipo = "visibilidadCambiada", visible });
+    public void EscudoCambiado(bool activo) => Escribir(new { tipo = "escudoCambiado", activo });
+    public void ModoCambiado(string valor) => Escribir(new { tipo = "modoCambiado", valor });
 
     public void Error(string mensaje, string? codigo = null)
     {

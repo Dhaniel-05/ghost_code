@@ -46,13 +46,30 @@ const hasta = async (cond, ms, que) => {
     await a.iniciar();
     for (const l of lineas('comandos-validos.ndjson')) {
       const c = decodificarComando(l).mensaje;
-      if (c.tipo === 'mostrar' || c.tipo === 'cerrar') continue;
+      if (c.tipo === 'mostrar' || c.tipo === 'cerrar' || c.tipo === 'traer') continue; // estos muestran la ventana o cierran
       assert.strictEqual(a.enviar(c), true);
     }
     a.enviar({ tipo: 'cargarGuia', titulo: 'G', lenguaje: 'typescript', bloques: [{ indice: 0, titulo: 'a', texto: 'x' }, { indice: 1, titulo: 'b', texto: 'y' }] });
     a.enviar({ tipo: 'seleccionarBloque', indice: 1 });
     await hasta(() => eventos.some((e) => e.tipo === 'bloqueSeleccionado' && e.indice === 1), 3000, 'bloqueSeleccionado');
     assert.strictEqual(a.estado, 'listo');
+    await a.detener();
+  });
+
+  await caso('escudo y modos (compacto, maximizado, normal): responde con escudoCambiado y modoCambiado, en orden y sin mostrar la ventana', async () => {
+    const eventos = [];
+    const a = new Ayudante({ ruta: exe, alEvento: (e) => eventos.push(e), reintentos: 0 });
+    await a.iniciar();
+    for (const c of [{ tipo: 'escudo', valor: true }, { tipo: 'modo', valor: 'compacto' }, { tipo: 'modo', valor: 'maximizado' }, { tipo: 'modo', valor: 'normal' }, { tipo: 'escudo', valor: false }]) assert.strictEqual(a.enviar(c), true);
+    await hasta(() => eventos.length >= 6, 3000, 'cinco respuestas');
+    assert.deepStrictEqual(eventos.slice(1), [
+      { tipo: 'escudoCambiado', activo: true },
+      { tipo: 'modoCambiado', valor: 'compacto' },
+      { tipo: 'modoCambiado', valor: 'maximizado' },
+      { tipo: 'modoCambiado', valor: 'normal' },
+      { tipo: 'escudoCambiado', activo: false },
+    ]);
+    assert.ok(!eventos.some((e) => e.tipo === 'visibilidadCambiada'), 'no debía mostrarse la ventana');
     await a.detener();
   });
 

@@ -17,7 +17,7 @@ Ten tu **código guía abierto mientras explicas en vivo, sin que la audiencia l
 2. Instálalo:
 
 ```powershell
-code --install-extension ghost-code-win32-x64-0.1.0.vsix
+code --install-extension ghost-code-win32-x64-0.1.1.vsix
 ```
 
    O desde VS Code: **Extensiones** (`Ctrl+Shift+X`) → menú `···` → **Instalar desde VSIX…**
@@ -57,6 +57,7 @@ Cuidados que ya tiene:
 | Atajo | Qué hace |
 |---|---|
 | `Ctrl+Alt+H` | Mostrar u ocultar el visor al instante |
+| `Ctrl+Alt+E` | **Escudo**: cubrir o mostrar el código del visor |
 | `Ctrl+Alt+→` | Insertar el siguiente bloque en el cursor |
 | `Ctrl+Alt+Shift+→` | Teclear el siguiente bloque **letra por letra** |
 | `Ctrl+Alt+←` | Retroceder el último bloque |
@@ -79,6 +80,24 @@ Una guía es un archivo de texto cualquiera dividido en **bloques**. Se separan 
 - Lo que haya **antes del primer marcador** se convierte en el primer bloque («Paso 1»).
 - El título es opcional; sin él se usa «Paso N».
 
+## El visor: ojo, barra compacta y maximizar
+
+Arriba del código, el visor tiene tres botones:
+
+| Botón | Qué hace |
+|---|---|
+| **Ojo** | **Escudo**: cubre el código con un panel opaco («Contenido oculto») por si alguien se asoma a tu pantalla. Otro clic lo descubre. También con `Ctrl+Alt+E` desde VS Code. |
+| **Reducir** | Pasa a una **barra compacta flotante**, siempre visible (y oculta de las capturas), que no se puede perder. Un clic la expande. |
+| **Maximizar / restaurar** | Ocupa toda el área de trabajo, sin tapar la barra de tareas. |
+
+La barra de estado muestra un **candado** mientras el escudo está puesto.
+
+> El atajo `Ctrl+Alt+E` solo funciona con VS Code enfocado. Si estás en otra aplicación (por ejemplo, la llamada), usa el botón del ojo del visor con el ratón.
+
+## Si el visor se pierde
+
+Como no tiene botón en la barra de tareas (para no dejar rastro en una pantalla compartida), usa **Ghost Code: Traer el visor aquí (si se perdió)** desde la paleta de comandos (`Ctrl+Shift+P`) o con el botón de la vista **Guías**. Lo restaura, lo mueve a una pantalla visible, lo muestra y lo sube al frente (y lo arranca de nuevo si se había cerrado). Si pides mostrarlo y no responde, Ghost Code te avisa con ese mismo botón.
+
 ## Escribir en vivo (Live Coding)
 
 - **Insertar un bloque** respeta la sangría de la línea donde está el cursor y el fin de línea del archivo (LF o CRLF). Si hay una selección, la reemplaza. Un bloque es **un solo paso de «deshacer»**.
@@ -99,6 +118,8 @@ Una guía es un archivo de texto cualquiera dividido en **bloques**. Se separan 
 | `ghostCode.visor.rutaEjecutable` | vacío | Ruta de otro `ghost-viewer.exe` (solo desde la configuración de usuario) |
 
 ## Qué se oculta y qué no (léelo antes de una presentación)
+
+El escudo cubre el visor, pero no la ventana principal de VS Code.
 
 Ghost Code usa la protección de captura de Windows (`SetWindowDisplayAffinity` con `WDA_EXCLUDEFROMCAPTURE`). Eso funciona con las **capturas por software**: grabadores de pantalla, Teams, Zoom, Meet, OBS y la herramienta de recortes. Se verificó con la captura de pantalla de Windows; **prueba tu programa de grabación o videollamada antes** de una sesión importante.
 
@@ -121,6 +142,7 @@ No protege contra:
 | «falta WebView2 en este equipo» | Instala **WebView2 Runtime** desde Microsoft y vuelve a intentarlo. |
 | «este Windows no permite ocultar la ventana de las capturas» | Hace falta Windows 10 versión 2004 o posterior; el visor no se mostrará. |
 | «no se encontró ghost-viewer» | La instalación quedó incompleta: reinstala el `.vsix`. |
+| No veo el visor | Comando **Traer el visor aquí (si se perdió)**. |
 | El visor se cerró varias veces seguidas | Abre el canal de salida **Ghost Code** (comando *Mostrar la salida*) y revisa el motivo. |
 
 ## Desarrollo

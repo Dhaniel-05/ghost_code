@@ -14,3 +14,7 @@ visibilidadCambiada con visible en texto	{"tipo":"visibilidadCambiada","visible"
 error sin mensaje	{"tipo":"error"}
 error con mensaje que no es texto	{"tipo":"error","mensaje":42}
 error con código que no es texto	{"tipo":"error","mensaje":"x","codigo":5}
+escudoCambiado sin activo	{"tipo":"escudoCambiado"}
+escudoCambiado con activo en texto	{"tipo":"escudoCambiado","activo":"si"}
+modoCambiado desconocido	{"tipo":"modoCambiado","valor":"flotante"}
+modoCambiado sin valor	{"tipo":"modoCambiado"}

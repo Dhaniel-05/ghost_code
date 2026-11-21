@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1
+- **El visor ya no se pierde.** Corregido: «siempre al frente» no se aplicaba si se pedía con el visor oculto y se quedaba detrás de otras ventanas. Nuevo comando **Traer el visor aquí (si se perdió)** (y botón en la vista Guías): lo restaura, lo mueve a una pantalla visible, lo muestra y lo sube al frente; si hace falta, arranca el visor de nuevo. El visor se recoloca solo al cambiar la disposición de pantallas (por ejemplo, al compartir pantalla) y nunca se queda minimizado.
+- **Aviso cuando no responde:** si pides mostrar el visor y no contesta, sale un mensaje con el botón «Traer el visor» (y, si sigue sin responder, «Reiniciar el visor»).
+- **Escudo:** cubre el código del visor con un panel opaco. Botón del **ojo** en el visor, atajo `Ctrl+Alt+E` y comando; la barra de estado muestra un candado mientras está puesto. Se recuerda aunque el visor se reinicie.
+- **Botones propios en el visor:** ojo (escudo), **reducir a barra compacta** flotante (siempre visible, no se puede perder; un clic la expande) y **maximizar / restaurar**.
+- Más detalle en el canal de salida «Ghost Code» para entender qué pasó si algo falla.
+
 ## 0.1.0
 - Primera versión de **Ghost Code**: tener el código guía abierto mientras explicas en vivo, sin que lo vea la audiencia de una grabación, videollamada o pantalla compartida.
 - **Visor protegido** (`ghost-viewer.exe`, autocontenido: no hace falta instalar .NET): ventana propia con protección de captura de Windows (`WDA_EXCLUDEFROMCAPTURE`), siempre al frente, sin botón en la barra de tareas, solo lectura, resaltado de sintaxis sin red, tema claro/oscuro y barra de título oscura.

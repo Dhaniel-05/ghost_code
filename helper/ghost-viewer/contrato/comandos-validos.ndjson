@@ -10,3 +10,9 @@
 {"tipo":"tema","valor":"oscuro"}
 {"tipo":"cerrar"}
 {"tipo":"mostrar","campoDeUnaVersionFutura":123}
+{"tipo":"escudo","valor":true}
+{"tipo":"escudo","valor":false}
+{"tipo":"modo","valor":"normal"}
+{"tipo":"modo","valor":"compacto"}
+{"tipo":"modo","valor":"maximizado"}
+{"tipo":"traer"}

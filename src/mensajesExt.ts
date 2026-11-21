@@ -7,6 +7,11 @@ export const MSG = {
     'Ghost Code: este Windows no permite ocultar la ventana de las capturas, así que el visor no se mostrará (hace falta Windows 10 versión 2004 o posterior).',
   webview2Ausente: 'Ghost Code: falta WebView2 en este equipo. Instala «WebView2 Runtime» de Microsoft y vuelve a intentarlo.',
   visorAgotado: 'Ghost Code: el visor se cerró varias veces seguidas y no se pudo recuperar. Revisa el canal «Ghost Code» y vuelve a mostrarlo.',
+  visorNoResponde:
+    'Ghost Code: el visor no respondió. Puede estar perdido (minimizado, detrás de otra ventana o fuera de pantalla) o haberse cerrado.',
+  visorNoRecupera: 'Ghost Code: el visor sigue sin responder. Prueba a reiniciarlo.',
+  botonTraer: 'Traer el visor',
+  botonReiniciar: 'Reiniciar el visor',
   visorNoMostro: 'Ghost Code: el visor no llegó a mostrarse, así que la pestaña no se cerró.',
   noSeGuardo: (nombre: string) => `Ghost Code: no se pudo guardar «${nombre}», así que su pestaña no se cerró.`,
   visorNoArranca: (detalle: string) => `Ghost Code: no se pudo abrir el visor. ${detalle}`,

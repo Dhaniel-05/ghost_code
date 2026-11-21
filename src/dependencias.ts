@@ -14,4 +14,6 @@ export interface AyudanteLike {
 export interface Dependencias {
   /** Crea el ayudante. Por defecto, un `Ayudante` real. */
   crearAyudante?: (opciones: OpcionesAyudante) => AyudanteLike;
+  /** Cuánto se espera a que el visor confirme que se ve, en milisegundos (por defecto 3500). */
+  esperaVisorMs?: number;
 }

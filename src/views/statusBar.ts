@@ -15,12 +15,12 @@ export class BarraEstado implements vscode.Disposable {
 
   actualizar(): void {
     const v = this.controlador.vista();
-    const icono = v.tecleando ? '$(sync~spin)' : v.visorVisible ? '$(eye)' : '$(eye-closed)';
+    const icono = v.tecleando ? '$(sync~spin)' : !v.visorVisible ? '$(eye-closed)' : v.escudo ? '$(lock)' : '$(eye)';
     this.item.text = `${icono} Ghost${v.progreso ? ` ${v.progreso}` : ''}`;
     this.item.tooltip = v.sinProteccion
       ? 'Ghost Code: este Windows no puede ocultar el visor de las capturas, así que no se mostrará.'
       : v.visorVisible
-        ? 'Ghost Code: visor visible. Clic para ocultarlo.'
+        ? `Ghost Code: visor visible${v.escudo ? ' con el escudo puesto (código cubierto)' : ''}. Clic para ocultarlo.`
         : 'Ghost Code: visor oculto. Clic para mostrarlo.';
     this.item.backgroundColor = v.sinProteccion ? new vscode.ThemeColor('statusBarItem.warningBackground') : undefined;
     if (v.mostrarBarra) this.item.show();

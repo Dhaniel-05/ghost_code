@@ -9,7 +9,7 @@ import { AyudanteLike, Dependencias } from './dependencias';
 import { lenguajeDe } from './lenguajes';
 import { MSG } from './mensajesExt';
 import { Ayudante, AvisoAyudante, ErrorAyudante } from './platform/ayudante';
-import { Evento } from './platform/protocolo';
+import { Evento, ModoVisor } from './platform/protocolo';
 import { MENSAJES } from './typing/mensajes';
 import { ResultadoAccion, SesionLive } from './typing/sesionLive';
 
@@ -33,6 +33,7 @@ export interface VistaEstado {
   tecleando: boolean;
   sinProteccion: boolean;
   progreso: string | undefined;
+  escudo: boolean;
   mostrarBarra: boolean;
   discreto: boolean;
 }
@@ -52,6 +53,8 @@ export class Controlador implements vscode.Disposable {
   private ayudante: AyudanteLike | undefined;
   private iniciandoVisor: Promise<AyudanteLike | undefined> | undefined;
   private visorVisible = false;
+  private escudo = false;
+  private modoVisor: ModoVisor = 'normal';
   private alFrente: boolean;
   private tecleos = 0;
   private proteccionAvisada = false;
@@ -113,6 +116,7 @@ export class Controlador implements vscode.Disposable {
       tecleando: this.tecleos > 0,
       sinProteccion: this.ayudante ? !this.ayudante.proteccionActiva : false,
       progreso,
+      escudo: this.escudo,
       mostrarBarra: this.ajuste('mostrarBarraDeEstado', true),
       discreto: this.ajuste('arbolDiscreto', false),
     };
@@ -228,7 +232,50 @@ export class Controlador implements vscode.Disposable {
       this.avisarSinProteccion();
       return;
     }
-    a.enviar({ tipo: this.visorVisible ? 'ocultar' : 'mostrar' });
+    if (this.visorVisible) {
+      a.enviar({ tipo: 'ocultar' });
+      return;
+    }
+    this.log.appendLine('Mostrando el visor…');
+    const visto = this.esperarVisible();
+    a.enviar({ tipo: 'mostrar' });
+    if (await visto) return;
+    this.log.appendLine('El visor no respondió a «mostrar».');
+    if ((await vscode.window.showWarningMessage(MSG.visorNoResponde, MSG.botonTraer)) === MSG.botonTraer) await this.recuperarVisor();
+  }
+
+  /** Escudo: cubre u descubre el código del visor. Se recuerda aunque el visor aún no esté abierto. */
+  alternarEscudo(): void {
+    this.escudo = !this.escudo;
+    this.ayudante?.enviar({ tipo: 'escudo', valor: this.escudo });
+    this.actualizarContextos();
+    this.cambio.fire();
+  }
+
+  /** «Traer el visor aquí»: lo arranca si hace falta y lo restaura, lo pone en una pantalla visible y al frente. */
+  async recuperarVisor(): Promise<void> {
+    this.log.appendLine('Trayendo el visor…');
+    const a = await this.asegurarVisor();
+    if (!a) return;
+    if (!a.proteccionActiva) {
+      this.avisarSinProteccion();
+      return;
+    }
+    const visto = this.esperarVisible();
+    a.enviar({ tipo: 'traer' });
+    if (await visto) return;
+    this.log.appendLine('El visor no respondió a «traer».');
+    if ((await vscode.window.showWarningMessage(MSG.visorNoRecupera, MSG.botonReiniciar)) === MSG.botonReiniciar) await this.reiniciarVisor();
+  }
+
+  /** Cierra el visor y lo arranca de cero (para cuando no responde). */
+  private async reiniciarVisor(): Promise<void> {
+    this.log.appendLine('Reiniciando el visor desde cero…');
+    const a = this.ayudante;
+    this.ayudante = undefined;
+    this.visorVisible = false;
+    if (a) await a.detener();
+    await this.recuperarVisor();
   }
 
   /**
@@ -424,6 +471,7 @@ export class Controlador implements vscode.Disposable {
     poner('ghostCode.tecleando', this.tecleos > 0);
     poner('ghostCode.visorVisible', this.visorVisible);
     poner('ghostCode.guiaCargada', this.guias.size > 0);
+    poner('ghostCode.escudo', this.escudo);
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -456,6 +504,8 @@ export class Controlador implements vscode.Disposable {
     }
     this.enviarTema();
     a.enviar({ tipo: 'siempreAlFrente', valor: this.alFrente });
+    if (this.escudo) a.enviar({ tipo: 'escudo', valor: true });
+    if (this.modoVisor !== 'normal') a.enviar({ tipo: 'modo', valor: this.modoVisor });
     this.enviarGuia(false);
     this.cambio.fire();
     return a;
@@ -470,19 +520,24 @@ export class Controlador implements vscode.Disposable {
       return false;
     }
     if (this.visorVisible) return true;
-    const visto = new Promise<boolean>((resolver) => {
+    const visto = this.esperarVisible();
+    a.enviar({ tipo: 'mostrar' });
+    const seVe = await visto;
+    if (!seVe) void vscode.window.showWarningMessage(MSG.visorNoMostro);
+    return seVe;
+  }
+
+  /** Promesa que se cumple cuando el visor avisa que se ve (verdadero) o pasa el plazo (falso). Se crea ANTES de enviar el comando. */
+  private esperarVisible(): Promise<boolean> {
+    return new Promise<boolean>((resolver) => {
       const fin = (v: boolean) => {
         clearTimeout(plazo);
         this.esperandoVisible.delete(fin);
         resolver(v);
       };
-      const plazo = setTimeout(() => fin(false), 4000);
+      const plazo = setTimeout(() => fin(false), this.deps.esperaVisorMs ?? 3500);
       this.esperandoVisible.add(fin);
     });
-    a.enviar({ tipo: 'mostrar' });
-    const seVe = await visto;
-    if (!seVe) void vscode.window.showWarningMessage(MSG.visorNoMostro);
-    return seVe;
   }
 
   private temaEfectivo(): 'claro' | 'oscuro' {
@@ -536,6 +591,17 @@ export class Controlador implements vscode.Disposable {
         break;
       case 'bloqueSeleccionado':
         this.log.appendLine(`Bloque ${e.indice} elegido en el visor.`);
+        break;
+      case 'escudoCambiado':
+        this.escudo = e.activo;
+        this.log.appendLine(`Escudo ${e.activo ? 'activado' : 'quitado'}.`);
+        this.actualizarContextos();
+        this.cambio.fire();
+        break;
+      case 'modoCambiado':
+        this.modoVisor = e.valor;
+        this.log.appendLine(`El visor pasó al modo ${e.valor}.`);
+        this.cambio.fire();
         break;
     }
   }
