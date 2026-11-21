@@ -19,6 +19,15 @@ internal static class Nativos
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool GetWindowDisplayAffinity(IntPtr hWnd, out uint pdwAffinity);
 
+    [DllImport("user32.dll")]
+    public static extern bool ReleaseCapture();
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    public const int WM_NCLBUTTONDOWN = 0x00A1;
+    public const int HTCAPTION = 2;
+
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
 }

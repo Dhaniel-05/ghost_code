@@ -82,13 +82,14 @@ Una guía es un archivo de texto cualquiera dividido en **bloques**. Se separan 
 
 ## El visor: ojo, barra compacta y maximizar
 
-Arriba del código, el visor tiene tres botones:
+El visor tiene una sola fila arriba, con el título «Ghost Code» y cuatro botones. Se arrastra desde esa fila (el doble clic maximiza o restaura) y se redimensiona por los bordes:
 
 | Botón | Qué hace |
 |---|---|
 | **Ojo** | **Escudo**: cubre el código con un panel opaco («Contenido oculto») por si alguien se asoma a tu pantalla. Otro clic lo descubre. También con `Ctrl+Alt+E` desde VS Code. |
 | **Reducir** | Pasa a una **barra compacta flotante**, siempre visible (y oculta de las capturas), que no se puede perder. Un clic la expande. |
 | **Maximizar / restaurar** | Ocupa toda el área de trabajo, sin tapar la barra de tareas. |
+| **Cerrar (X)** | Oculta el visor (la extensión lo vuelve a mostrar con `Ctrl+Alt+H`). |
 
 La barra de estado muestra un **candado** mientras el escudo está puesto.
 

@@ -2,7 +2,7 @@
   "name": "ghost-code",
   "displayName": "Ghost Code",
   "description": "Guía de código invisible para grabaciones y videollamadas: un visor protegido contra captura y un modo de Live Coding paso a paso.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "ramcrack",
   "license": "MIT",
   "author": {
@@ -255,6 +255,21 @@
           "command": "ghostCode.removeGuide",
           "when": "view == ghostCode.guias && viewItem =~ /^guia/",
           "group": "inline@2"
+        },
+        {
+          "command": "ghostCode.activateGuide",
+          "when": "view == ghostCode.guias && viewItem == guia",
+          "group": "navigation@1"
+        },
+        {
+          "command": "ghostCode.removeGuide",
+          "when": "view == ghostCode.guias && viewItem =~ /^guia/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "ghostCode.selectBlock",
+          "when": "view == ghostCode.guias && viewItem == bloque",
+          "group": "navigation@1"
         }
       ],
       "explorer/context": [

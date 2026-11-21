@@ -10,7 +10,9 @@ namespace GhostViewer;
 internal sealed class VisorForm : Form
 {
     private static readonly Size MinimoNormal = new(320, 200);
-    private static readonly Size ClienteCompacto = new(300, 44);
+    private const int Grosor = 6; // margen de la ventana: por ahí se redimensiona (sin barra nativa no hay bordes del sistema)
+    private static readonly Size ClienteCompacto = new(300, 36 + 2 * Grosor); // la cabecera (36) más el margen
+    [Flags] private enum Lado { Nada = 0, Izq = 1, Der = 2, Arr = 4, Aba = 8 }
 
     private readonly WebView2 _web = new();
     private readonly SalidaProtocolo _salida;
@@ -22,6 +24,9 @@ internal sealed class VisorForm : Form
     private string _modo = "normal";
     private Rectangle? _boundsNormal; // dónde estaba la ventana normal al pasar a compacto o maximizado
     private int _totalBloques;
+    private Lado _ladoArrastre = Lado.Nada;
+    private Point _origenMouse;
+    private Rectangle _origenBounds;
 
     /// <summary>Verdadero si la protección de captura (0x11) está aplicada y verificada.</summary>
     public bool Afinidad { get; private set; }
@@ -30,7 +35,11 @@ internal sealed class VisorForm : Form
     {
         _salida = salida;
         Text = "Ghost Code"; // título neutro: nunca el nombre del archivo guía
-        FormBorderStyle = FormBorderStyle.SizableToolWindow; // ventana de herramientas: sin botón en la barra de tareas ni en Alt+Tab
+        // Sin barra de título del sistema (su X roja y su título ocupaban espacio): la cabecera de la página hace de barra.
+        // «Herramienta» (CreateParams) = sin botón en la barra de tareas ni en Alt+Tab.
+        FormBorderStyle = FormBorderStyle.None;
+        Padding = new Padding(Grosor);
+        ResizeRedraw = true;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.Manual;
         MinimumSize = MinimoNormal;
@@ -70,6 +79,98 @@ internal sealed class VisorForm : Form
     {
         if (disposing) SystemEvents.DisplaySettingsChanged -= AlCambiarPantallas;
         base.Dispose(disposing);
+    }
+
+    protected override CreateParams CreateParams
+    {
+        get
+        {
+            var cp = base.CreateParams;
+            cp.ExStyle |= 0x00000080; // WS_EX_TOOLWINDOW
+            return cp;
+        }
+    }
+
+    // Un borde fino del color del tema, para que la ventana se distinga del fondo
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        base.OnPaint(e);
+        using var lapiz = new Pen(_oscuro ? Color.FromArgb(48, 54, 61) : Color.FromArgb(208, 215, 222));
+        e.Graphics.DrawRectangle(lapiz, 0, 0, Width - 1, Height - 1);
+    }
+
+    // --- Redimensionar por el margen (solo en modo normal) ---
+    private Lado LadosEn(Point p)
+    {
+        if (_modo != "normal") return Lado.Nada;
+        var l = Lado.Nada;
+        if (p.X < Grosor) l |= Lado.Izq; else if (p.X >= ClientSize.Width - Grosor) l |= Lado.Der;
+        if (p.Y < Grosor) l |= Lado.Arr; else if (p.Y >= ClientSize.Height - Grosor) l |= Lado.Aba;
+        return l;
+    }
+
+    private static Cursor CursorDe(Lado l) => l switch
+    {
+        Lado.Izq or Lado.Der => Cursors.SizeWE,
+        Lado.Arr or Lado.Aba => Cursors.SizeNS,
+        Lado.Izq | Lado.Arr or Lado.Der | Lado.Aba => Cursors.SizeNWSE,
+        Lado.Der | Lado.Arr or Lado.Izq | Lado.Aba => Cursors.SizeNESW,
+        _ => Cursors.Default,
+    };
+
+    protected override void OnMouseDown(MouseEventArgs e)
+    {
+        base.OnMouseDown(e);
+        if (e.Button != MouseButtons.Left) return;
+        var lados = LadosEn(e.Location);
+        if (lados == Lado.Nada) return;
+        _ladoArrastre = lados;
+        _origenMouse = PointToScreen(e.Location);
+        _origenBounds = Bounds;
+        Capture = true;
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+        if (_ladoArrastre == Lado.Nada) { Cursor = CursorDe(LadosEn(e.Location)); return; }
+        if (!Capture) { TerminarArrastre(); return; } // se perdió la captura del ratón: se acabó el arrastre
+        var p = PointToScreen(e.Location);
+        int dx = p.X - _origenMouse.X, dy = p.Y - _origenMouse.Y;
+        int minAncho = MinimumSize.Width, minAlto = MinimumSize.Height;
+        var r = _origenBounds;
+        if ((_ladoArrastre & Lado.Der) != 0) r.Width = Math.Max(minAncho, _origenBounds.Width + dx);
+        if ((_ladoArrastre & Lado.Aba) != 0) r.Height = Math.Max(minAlto, _origenBounds.Height + dy);
+        if ((_ladoArrastre & Lado.Izq) != 0) { var ancho = Math.Max(minAncho, _origenBounds.Width - dx); r.X = _origenBounds.Right - ancho; r.Width = ancho; }
+        if ((_ladoArrastre & Lado.Arr) != 0) { var alto = Math.Max(minAlto, _origenBounds.Height - dy); r.Y = _origenBounds.Bottom - alto; r.Height = alto; }
+        Bounds = r;
+    }
+
+    protected override void OnMouseUp(MouseEventArgs e)
+    {
+        base.OnMouseUp(e);
+        if (_ladoArrastre == Lado.Nada) return;
+        TerminarArrastre();
+        GuardarPosicion();
+    }
+
+    protected override void OnMouseCaptureChanged(EventArgs e)
+    {
+        base.OnMouseCaptureChanged(e);
+        if (_ladoArrastre != Lado.Nada && !Capture) _ladoArrastre = Lado.Nada;
+    }
+
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        base.OnMouseLeave(e);
+        if (_ladoArrastre == Lado.Nada) Cursor = Cursors.Default;
+    }
+
+    private void TerminarArrastre()
+    {
+        _ladoArrastre = Lado.Nada;
+        Capture = false;
+        Cursor = Cursors.Default;
     }
 
     // Mostrar sin robar el foco de lo que se esté escribiendo
@@ -219,6 +320,7 @@ internal sealed class VisorForm : Form
     {
         _oscuro = tema != "claro";
         BarraTitulo.Aplicar(Handle, _oscuro);
+        Invalidate(); // repinta el borde con el color del tema
         var fondo = tema == "claro" ? Color.White : Color.FromArgb(13, 17, 23);
         BackColor = fondo;
         _web.DefaultBackgroundColor = fondo;
@@ -308,6 +410,17 @@ internal sealed class VisorForm : Form
                     break;
                 case "escudo" when raiz.TryGetProperty("valor", out var v) && (v.ValueKind == JsonValueKind.True || v.ValueKind == JsonValueKind.False):
                     AplicarEscudo(v.GetBoolean());
+                    break;
+                case "cerrar":
+                    Hide(); // lo mismo que hacía la X de la barra nativa: ocultar (la extensión decide cuándo termina el visor)
+                    break;
+                case "arrastrar":
+                    // Solo con el botón realmente pulsado: si el mensaje llega tarde, la ventana se quedaría «pegada» al cursor
+                    if (_modo != "maximizado" && (MouseButtons & MouseButtons.Left) != 0)
+                    {
+                        Nativos.ReleaseCapture();
+                        Nativos.SendMessage(Handle, Nativos.WM_NCLBUTTONDOWN, (IntPtr)Nativos.HTCAPTION, IntPtr.Zero);
+                    }
                     break;
                 case "modo" when raiz.TryGetProperty("valor", out var m) && m.ValueKind == JsonValueKind.String
                                  && m.GetString() is "normal" or "compacto" or "maximizado":

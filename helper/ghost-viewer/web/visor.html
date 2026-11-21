@@ -17,7 +17,8 @@
   /* Cabecera propia: ojo (escudo), reducir a barra compacta y maximizar. Siempre visible, también en modo compacto. */
   #barra { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 6px; height: 36px; box-sizing: border-box; padding: 0 8px 0 12px;
            background: var(--fondo); border-bottom: 1px solid var(--borde); }
-  #marca { font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--tenue); user-select: none; }
+  #barra { user-select: none; cursor: default; }
+  #marca { font-size: 12px; font-weight: 600; color: var(--texto); }
   #relleno { flex: 1; }
   #barra button { display: inline-grid; place-items: center; width: 28px; height: 24px; padding: 0; border: 0; border-radius: 5px; cursor: pointer;
                   color: var(--texto); background: var(--boton); }
@@ -29,8 +30,6 @@
   body.compacto .i-reducir, body:not(.compacto) .i-expandir { display: none; }
   body.maximizado .i-maximizar, body:not(.maximizado) .i-restaurar { display: none; }
 
-  #titulo { position: sticky; top: 36px; z-index: 2; margin: 0; padding: 8px 14px; font-size: 12px; font-weight: 600;
-            color: var(--tenue); background: var(--fondo); border-bottom: 1px solid var(--borde); }
   #vacio { padding: 24px 14px; color: var(--tenue); }
   .bloque { margin: 10px; border: 1px solid var(--borde); border-left: 4px solid var(--borde); border-radius: 6px; background: var(--suave); cursor: pointer; }
   .bloque.actual { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
@@ -45,11 +44,11 @@
   #panel-escudo svg { width: 40px; height: 40px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   #panel-escudo p { margin: 10px 0 0; font-size: 13px; }
   body.escudo #panel-escudo { display: grid; }
-  body.escudo main, body.escudo #titulo, body.escudo #vacio { display: none !important; }
+  body.escudo main, body.escudo #vacio { display: none !important; }
 
   /* Barra compacta: solo la cabecera */
   body.compacto { overflow: hidden; }
-  body.compacto main, body.compacto #titulo, body.compacto #vacio, body.compacto #panel-escudo { display: none !important; }
+  body.compacto main, body.compacto #vacio, body.compacto #panel-escudo { display: none !important; }
 
   /* Barras de desplazamiento del color del tema (las del sistema salen blancas) */
   ::-webkit-scrollbar { width: 12px; height: 12px; }
@@ -64,7 +63,7 @@
 </head>
 <body class="oscuro">
 <header id="barra">
-  <span id="marca">GHOST</span>
+  <span id="marca">Ghost Code</span>
   <span id="relleno"></span>
   <button id="b-ojo" type="button" title="Cubrir el código" aria-label="Cubrir el código">
     <svg class="i-ojo-abierto" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -78,8 +77,10 @@
     <svg class="i-maximizar" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg>
     <svg class="i-restaurar" viewBox="0 0 24 24"><rect x="4" y="8" width="12" height="12" rx="1.5"/><path d="M8 8V5.5A1.5 1.5 0 0 1 9.5 4H18.5A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H16"/></svg>
   </button>
+  <button id="b-cerrar" type="button" title="Cerrar" aria-label="Cerrar">
+    <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
 </header>
-<h1 id="titulo" hidden></h1>
 <div id="vacio">Sin guía cargada.</div>
 <div id="panel-escudo">
   <div>
@@ -92,13 +93,14 @@
 (function () {
   'use strict';
   const raiz = document.getElementById('guia');
-  const titulo = document.getElementById('titulo');
   const vacio = document.getElementById('vacio');
   const claro = document.getElementById('css-claro');
   const oscuro = document.getElementById('css-oscuro');
   const bOjo = document.getElementById('b-ojo');
   const bMin = document.getElementById('b-min');
   const bMax = document.getElementById('b-max');
+  const bCerrar = document.getElementById('b-cerrar');
+  const barra = document.getElementById('barra');
   // Nombres de lenguaje de VS Code que el resaltador conoce con otro nombre
   const ALIAS = { typescriptreact: 'typescript', javascriptreact: 'javascript', jsonc: 'json', shellscript: 'bash', 'objective-c': 'objectivec' };
   const enviar = (m) => window.chrome && window.chrome.webview && window.chrome.webview.postMessage(m);
@@ -116,8 +118,6 @@
 
   function cargar(m) {
     raiz.textContent = '';
-    titulo.textContent = m.titulo || '';
-    titulo.hidden = !m.titulo;
     vacio.hidden = m.bloques.length > 0;
     const nombre = String(m.lenguaje || '').toLowerCase();
     const lenguaje = ALIAS[nombre] || nombre;
@@ -172,6 +172,15 @@
   bOjo.addEventListener('click', () => enviar({ tipo: 'escudo', valor: !cuerpo.classList.contains('escudo') }));
   bMin.addEventListener('click', () => enviar({ tipo: 'modo', valor: cuerpo.classList.contains('compacto') ? 'normal' : 'compacto' }));
   bMax.addEventListener('click', () => enviar({ tipo: 'modo', valor: cuerpo.classList.contains('maximizado') ? 'normal' : 'maximizado' }));
+
+  bCerrar.addEventListener('click', () => enviar({ tipo: 'cerrar' }));
+  // Sin barra de título nativa: la cabecera hace de barra (se arrastra con el ratón; doble clic = maximizar o restaurar)
+  barra.addEventListener('mousedown', (e) => {
+    if (e.button === 0 && !e.target.closest('button')) enviar({ tipo: 'arrastrar' });
+  });
+  barra.addEventListener('dblclick', (e) => {
+    if (!e.target.closest('button')) enviar({ tipo: 'modo', valor: cuerpo.classList.contains('maximizado') ? 'normal' : 'maximizado' });
+  });
 
   window.chrome.webview.addEventListener('message', (e) => {
     const m = e.data;

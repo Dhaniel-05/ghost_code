@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+- **Visor con una sola fila arriba.** Se quitó la barra de título de Windows (con su X roja) y se eliminaron los nombres repetidos: ahora la cabecera dice solo **«Ghost Code»** y, a la derecha, cuatro íconos blancos en la misma fila: **ojo** (escudo), **reducir**, **maximizar / restaurar** y **cerrar**. Tampoco se muestra ya el nombre del archivo de la guía.
+- La cabecera hace de barra: se **arrastra** con el ratón y el doble clic maximiza o restaura. Se **redimensiona** por los bordes de la ventana. Cerrar oculta el visor, igual que antes la X.
+- **Clic derecho en la vista «Guías»:** ahora el menú contextual ofrece **Activar guía**, **Quitar guía** y **Ver bloque en el visor** (antes solo había botones al pasar el ratón).
+- Borde fino del color del tema para distinguir la ventana del fondo; la barra compacta queda más baja (una sola fila).
+
 ## 0.1.1
 - **El visor ya no se pierde.** Corregido: «siempre al frente» no se aplicaba si se pedía con el visor oculto y se quedaba detrás de otras ventanas. Nuevo comando **Traer el visor aquí (si se perdió)** (y botón en la vista Guías): lo restaura, lo mueve a una pantalla visible, lo muestra y lo sube al frente; si hace falta, arranca el visor de nuevo. El visor se recoloca solo al cambiar la disposición de pantallas (por ejemplo, al compartir pantalla) y nunca se queda minimizado.
 - **Aviso cuando no responde:** si pides mostrar el visor y no contesta, sale un mensaje con el botón «Traer el visor» (y, si sigue sin responder, «Reiniciar el visor»).

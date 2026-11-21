@@ -19,7 +19,8 @@ export function registrarComandos(contexto: vscode.ExtensionContext, c: Controla
   registrar('typeNextBlock', () => c.teclear());
   registrar('prevBlock', () => c.retroceder());
   registrar('cancelTyping', () => c.cancelarTecleo());
-  registrar('selectBlock', (guiaId: string, indice: number) => c.seleccionarBloque(guiaId, indice));
+  // Desde el clic en un bloque llegan (guiaId, indice); desde el clic derecho llega el nodo del árbol
+  registrar('selectBlock', (a: string | Nodo, indice?: number) => (typeof a === 'string' ? c.seleccionarBloque(a, indice ?? 0) : a.tipo === 'bloque' ? c.seleccionarBloque(a.id, a.indice) : undefined));
   // Desde el árbol llega el nodo; desde la paleta, nada (se usa la guía activa)
   registrar('activateGuide', (nodo?: Nodo) => c.activar(nodo?.id));
   registrar('removeGuide', (nodo?: Nodo) => c.quitar(nodo?.id));

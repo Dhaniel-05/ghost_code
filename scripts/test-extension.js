@@ -153,6 +153,28 @@ const item = (nodo) => proveedor().getTreeItem(nodo);
     assert.ok(/AplicarTema[\s\S]*BarraTitulo\.Aplicar/.test(form), 'la barra de título no sigue al tema');
     assert.ok(/::-webkit-scrollbar/.test(cs('web/visor.html')), 'falta el scroll oscuro de la página');
   });
+  caso('cabecera única del visor: «Ghost Code» una sola vez; ojo, reducir, maximizar y cerrar en la misma fila; sin barra nativa ni título de la guía', () => {
+    const leer = (n) => fs.readFileSync(path.join(raiz, 'helper', 'ghost-viewer', n), 'utf8');
+    const html = leer('web/visor.html');
+    const barra = /<header id="barra">([\s\S]*?)<\/header>/.exec(html);
+    assert.ok(barra, 'falta la cabecera');
+    for (const id of ['b-ojo', 'b-min', 'b-max', 'b-cerrar']) assert.ok(barra[1].includes(`id="${id}"`), `falta el botón ${id} en la cabecera`);
+    assert.ok(/<span id="marca">Ghost Code<\/span>/.test(barra[1]), 'el título debe ser «Ghost Code»');
+    assert.ok(!/>\s*GHOST\s*</.test(html), 'sobra el «GHOST» repetido');
+    assert.ok(!/id="titulo"/.test(html), 'sobra el título del archivo de la guía');
+    const form = leer('VisorForm.cs');
+    assert.ok(/FormBorderStyle = FormBorderStyle\.None/.test(form), 'la ventana no debe tener la barra de título nativa (la X roja)');
+    assert.ok(/WS_EX_TOOLWINDOW|0x80/.test(form), 'sigue sin botón en la barra de tareas');
+    assert.ok(/case "arrastrar"/.test(form) && /case "cerrar"/.test(form), 'la página debe poder arrastrar la ventana y cerrarla');
+    assert.ok(/OnMouseMove/.test(form) && /OnMouseDown/.test(form), 'sin barra nativa hay que poder redimensionar por los bordes');
+  });
+  caso('clic derecho en la vista «Guías»: activar y quitar una guía, y ver un bloque, además de los botones en línea', () => {
+    const menu = m.contributes.menus['view/item/context'];
+    const alClicDerecho = (cmd) => menu.filter((x) => x.command === cmd && !x.group.startsWith('inline'));
+    assert.ok(alClicDerecho('ghostCode.activateGuide').length, 'falta «Activar guía» en el clic derecho');
+    assert.ok(alClicDerecho('ghostCode.removeGuide').length, 'falta «Quitar guía» en el clic derecho');
+    assert.ok(alClicDerecho('ghostCode.selectBlock').some((x) => /viewItem == bloque/.test(x.when)), 'falta «Ver bloque» en el clic derecho de un bloque');
+  });
   caso('ajustes con sus valores por defecto y límites', () => {
     const p = m.contributes.configuration.properties;
     assert.strictEqual(p['ghostCode.tecleo.caracteresPorSegundo'].default, 30);
@@ -560,6 +582,13 @@ const item = (nodo) => proveedor().getTreeItem(nodo);
     await h.ejecutar(cmd.command, ...cmd.arguments);
     assert.deepStrictEqual(h.ayudante().comandos.at(-1), { tipo: 'seleccionarBloque', indice: 1 });
     assert.strictEqual(item((await raices())[0]).description, '0/2');
+  });
+  await prueba('«Ver bloque» desde el clic derecho (llega el nodo del árbol, no los argumentos del clic): también lo muestra en el visor', {}, async (h) => {
+    await cargar(h);
+    await h.ejecutar('ghostCode.toggleVisor');
+    const nodoBloque = (await proveedor().getChildren((await raices())[0]))[1];
+    await h.ejecutar('ghostCode.selectBlock', nodoBloque);
+    assert.deepStrictEqual(h.ayudante().comandos.at(-1), { tipo: 'seleccionarBloque', indice: 1 });
   });
   await prueba('ajustes en vivo: el tema (claro/oscuro/auto) y «siempre al frente» llegan al visor', {}, async (h) => {
     await h.ejecutar('ghostCode.toggleVisor');
