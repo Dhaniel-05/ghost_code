@@ -21,6 +21,9 @@
     "url": "https://github.com/Dhaniel-05/ghost_code/issues"
   },
   "homepage": "https://github.com/Dhaniel-05/ghost_code#readme",
+  "sponsor": {
+    "url": "https://github.com/sponsors/Dhaniel-05"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },

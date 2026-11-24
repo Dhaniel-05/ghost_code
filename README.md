@@ -166,3 +166,9 @@ Para publicar una versión: sube el número en `package.json`, anótalo en `CHAN
 ## Licencia
 
 MIT
+
+## Patrocinio / Support
+
+Ghost Code es libre y gratuito. Con tu apoyo ayudas a que [**RAMCRACK**](https://ramcrack.com/) siga desarrollando herramientas de código abierto bajo licencia MIT: puedes patrocinar en [GitHub Sponsors](https://github.com/sponsors/Dhaniel-05).
+
+También ayuda reportar errores y proponer mejoras en [Issues](https://github.com/Dhaniel-05/ghost_code/issues).
