@@ -2,7 +2,7 @@
   "name": "ghost-code",
   "displayName": "Ghost Code",
   "description": "Guía de código invisible para grabaciones y videollamadas: un visor protegido contra captura y un modo de Live Coding paso a paso.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "publisher": "ramcrack",
   "license": "MIT",
   "author": {

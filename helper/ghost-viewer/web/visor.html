@@ -12,10 +12,13 @@
   body.oscuro { --fondo: #0d1117; --texto: #e6edf3; --borde: #30363d; --suave: #161b22; --acento: #2f81f7; --tenue: #8b949e; --boton: #21262d; --boton-hover: #30363d; }
   body.claro  { --fondo: #ffffff; --texto: #1f2328; --borde: #d0d7de; --suave: #f6f8fa; --acento: #0969da; --tenue: #656d76; --boton: #eaeef2; --boton-hover: #d0d7de; }
   html, body { margin: 0; height: 100%; }
-  body { background: var(--fondo); color: var(--texto); font: 13px/1.5 "Segoe UI", system-ui, sans-serif; overflow-y: auto; }
+  /* Columna del alto de la ventana: la página no se desplaza, solo la zona del código (#guia) */
+  body { display: flex; flex-direction: column; height: 100vh; max-height: 100vh; overflow: hidden;
+         background: var(--fondo); color: var(--texto); font: 13px/1.5 "Segoe UI", system-ui, sans-serif; }
+  #guia { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; }
 
   /* Cabecera propia: ojo (escudo), reducir a barra compacta y maximizar. Siempre visible, también en modo compacto. */
-  #barra { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 6px; height: 36px; box-sizing: border-box; padding: 0 8px 0 12px;
+  #barra { flex-shrink: 0; display: flex; align-items: center; gap: 6px; height: 36px; box-sizing: border-box; padding: 0 8px 0 12px;
            background: var(--fondo); border-bottom: 1px solid var(--borde); }
   #barra { user-select: none; cursor: default; }
   #marca { font-size: 12px; font-weight: 600; color: var(--texto); }
@@ -33,14 +36,19 @@
   #vacio { padding: 24px 14px; color: var(--tenue); }
   .bloque { margin: 10px; border: 1px solid var(--borde); border-left: 4px solid var(--borde); border-radius: 6px; background: var(--suave); cursor: pointer; }
   .bloque.actual { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
-  .bloque header { padding: 4px 10px; font-size: 11px; font-weight: 600; letter-spacing: .02em; color: var(--tenue); border-bottom: 1px solid var(--borde); }
+  /* El indicador de paso se queda pegado arriba mientras se recorre su bloque */
+  .bloque header { position: sticky; top: 0; z-index: 1; padding: 4px 10px; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+                   color: var(--tenue); background: var(--suave); border-bottom: 1px solid var(--borde); border-radius: 0 5px 0 0;
+                   overflow-wrap: anywhere; }
   .bloque.actual header { color: var(--acento); }
-  pre { margin: 0; padding: 10px; overflow-x: auto; user-select: text; }
-  code { font: 13px/1.45 "Cascadia Code", Consolas, "Courier New", monospace; white-space: pre; }
-  .hljs { background: transparent !important; padding: 0 !important; }
+  /* Las líneas largas se envuelven (conservando la sangría): nada se corta por la derecha */
+  pre { margin: 0; padding: 10px; max-width: 100%; box-sizing: border-box; user-select: text; }
+  pre, code { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; }
+  code { font: 13px/1.45 "Cascadia Code", Consolas, "Courier New", monospace; }
+  .hljs { background: transparent !important; padding: 0 !important; overflow-x: visible !important; }
 
   /* Escudo: un panel OPACO cubre el código (un desenfoque se podría leer) y el contenido deja de mostrarse */
-  #panel-escudo { display: none; place-items: center; text-align: center; padding: 48px 16px; color: var(--tenue); }
+  #panel-escudo { display: none; flex: 1; min-height: 0; overflow-y: auto; place-content: center; place-items: center;text-align: center; padding: 48px 16px; color: var(--tenue); }
   #panel-escudo svg { width: 40px; height: 40px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   #panel-escudo p { margin: 10px 0 0; font-size: 13px; }
   body.escudo #panel-escudo { display: grid; }

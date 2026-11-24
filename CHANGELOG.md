@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+- **La cabecera ya no se pierde al desplazarse.** La barra «Ghost Code» con sus botones queda fija y solo la zona del código tiene desplazamiento; el título del paso queda a la vista mientras se recorre su bloque.
+- **Nada se corta por la derecha:** las líneas largas de código y comentarios bajan al renglón siguiente.
+
 ## 0.1.2
 - **Visor con una sola fila arriba.** Se quitó la barra de título de Windows (con su X roja) y se eliminaron los nombres repetidos: ahora la cabecera dice solo **«Ghost Code»** y, a la derecha, cuatro íconos blancos en la misma fila: **ojo** (escudo), **reducir**, **maximizar / restaurar** y **cerrar**. Tampoco se muestra ya el nombre del archivo de la guía.
 - La cabecera hace de barra: se **arrastra** con el ratón y el doble clic maximiza o restaura. Se **redimensiona** por los bordes de la ventana. Cerrar oculta el visor, igual que antes la X.
